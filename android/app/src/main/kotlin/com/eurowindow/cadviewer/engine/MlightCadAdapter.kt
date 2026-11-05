@@ -111,7 +111,7 @@ class MlightCadAdapter(
                             id = lObj.optString("id", "$i"),
                             name = lObj.optString("name", "Layer $i"),
                             isVisible = !lObj.optBoolean("isOff", false),
-                            color = lObj.optInt("color", 7)
+                            colorHex = lObj.optInt("color", 7)
                         )
                     )
                 }

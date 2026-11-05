@@ -58,10 +58,10 @@ fun ViewerScreen(
                 onSuccess = { bytes ->
                     val openResult = adapter.openDrawing(displayName, bytes)
                     isLoadingDrawing = false
-                    openResult.onSuccess {
+                    if (openResult.isSuccess) {
                         layersList = adapter.getLayers()
-                    }.onFailure { err ->
-                        errorMessage = err.message ?: "Lỗi khi mở bản vẽ"
+                    } else {
+                        errorMessage = openResult.exceptionOrNull()?.message ?: "Lỗi khi mở bản vẽ"
                     }
                 },
                 onFailure = { err ->
@@ -277,7 +277,7 @@ fun ViewerScreen(
                                             fontWeight = FontWeight.Medium
                                         )
                                     }
-                                    Divider(color = Color(0x22FFFFFF))
+                                    HorizontalDivider(color = Color(0x22FFFFFF))
                                 }
                             }
                         }
