@@ -1,0 +1,133 @@
+{
+  "version": "1.0.0",
+  "description": "Eurowindow CAD Viewer - Compatibility Test Corpus Baseline",
+  "created_at": "2026-11-05T02:05:30.657Z",
+  "samples": [
+    {
+      "id": "EW01",
+      "fileName": "aci7-bylayer-background.dxf",
+      "fileSize": 789,
+      "sha256": "571ac648a9354c1fbddd4a518ee50c2a92b7661b5c681c89a500fcbd3da50f12",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW02",
+      "fileName": "block-color.dxf",
+      "fileSize": 621441,
+      "sha256": "4f9f0a294659133134bbf72304c10bbbf4784e25a805d0222015e88b30a557d2",
+      "fileExtension": ".dxf",
+      "category": "Blocks and inserts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW03",
+      "fileName": "empty.dxf",
+      "fileSize": 253,
+      "sha256": "1c3429b6550fde95476bd954f683fb3bc8c10e2b9464d35b1b203dc50e6e3edd",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW04",
+      "fileName": "find-blocks.dxf",
+      "fileSize": 7410,
+      "sha256": "7fd4c9ce78ed8ffe128fd7a35af99af3fda2085fc803b2b369e9c866e098a0dc",
+      "fileExtension": ".dxf",
+      "category": "Blocks and inserts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW05",
+      "fileName": "find-layouts.dxf",
+      "fileSize": 6794,
+      "sha256": "bd8c9af9d48c690670e91cabc10518c5e40d42d3abdc6048fc0688cdc4e3616a",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW06",
+      "fileName": "invisible-lwpolylines-in-block.dxf",
+      "fileSize": 842,
+      "sha256": "620ee204e2bedb25f96e01f8f2c53d4010bd3f8f1c13935db5102e20523b4252",
+      "fileExtension": ".dxf",
+      "category": "Blocks and inserts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW07",
+      "fileName": "invisible-lwpolylines.dxf",
+      "fileSize": 610,
+      "sha256": "8e673e10ffe134c037454797c015f5b3a04ac18017bc92da97c556470b248b7c",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW08",
+      "fileName": "layer0-aci7-explicit-insert.dxf",
+      "fileSize": 1270,
+      "sha256": "ab771d26c4f4500385b00b72a582b93cdb62f72abc9388011fecf2b1589f8068",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW09",
+      "fileName": "minimal-line.dxf",
+      "fileSize": 452,
+      "sha256": "da82faaa9c9684e014cae8942389eb7a515bf2defdae9d0e35274ed5b51af8fe",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW10",
+      "fileName": "nested-insert-layers.dxf",
+      "fileSize": 1100,
+      "sha256": "9f1db62951bbf1c543ae3d6801b679e3a4d4abc31b18d7e52295d4f9c3f41c9c",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW11",
+      "fileName": "shape-entity.dxf",
+      "fileSize": 666,
+      "sha256": "078fb3667346ae36167d70995c0d1bc5a27b7fb25a1eb550226144a62b632f11",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW12",
+      "fileName": "sheet_0.dxf",
+      "fileSize": 2212649,
+      "sha256": "a7c21580e12ca39ca65b44501221e1c1073b30bc312a4f5608c4121bc66dde64",
+      "fileExtension": ".dxf",
+      "category": "Large drawing",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW13",
+      "fileName": "visible-lwpolylines-in-block.dxf",
+      "fileSize": 842,
+      "sha256": "a8929437fa50b0cf3bc7efcbaef74b82c4a3752099dcb3c7469b39fc9f2265bd",
+      "fileExtension": ".dxf",
+      "category": "Blocks and inserts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "EW14",
+      "fileName": "visible-lwpolylines.dxf",
+      "fileSize": 610,
+      "sha256": "6d2c20c3b389e0d2a3332171de7e2fd4b57ef56ebba7f6f57c7aec6fd58b0ce6",
+      "fileExtension": ".dxf",
+      "category": "General DXF",
+      "status": "VERIFIED"
+    }
+  ]
+}

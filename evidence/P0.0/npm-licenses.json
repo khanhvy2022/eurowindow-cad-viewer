@@ -1,0 +1,18 @@
+{
+  "@mlightcad/cad-simple-viewer@1.7.8": "MIT",
+  "@mlightcad/data-model@1.15.22": "MIT",
+  "@mlightcad/three-renderer@1.7.8": "MIT",
+  "@mlightcad/mtext-parser@1.5.7": "MIT",
+  "@mlightcad/mtext-renderer@0.13.7": "MIT",
+  "@mlightcad/common@1.15.22": "MIT",
+  "@mlightcad/geometry-engine@3.15.22": "MIT",
+  "@mlightcad/graphic-interface@3.15.22": "MIT",
+  "@mlightcad/emf-converter@1.15.22": "Apache-2.0",
+  "three@0.186.1": "MIT",
+  "lodash-es@4.17.21": "MIT",
+  "mitt@3.0.1": "MIT",
+  "rbush@4.0.1": "MIT",
+  "@velipso/polybool@1.1.1": "0BSD",
+  "@mlightcad/libredwg-converter@3.15.22": "GPL-3.0",
+  "@mlightcad/libredwg-web@0.8.4": "GPL-3.0"
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "eurowindow-cad-viewer",
+  "milestone": "P0",
+  "generated_at": "2026-11-05T09:05:00Z",
+  "pinned_versions": {
+    "cad_core": {
+      "@mlightcad/cad-simple-viewer": "1.7.8",
+      "@mlightcad/data-model": "1.15.22",
+      "@mlightcad/three-renderer": "1.7.8",
+      "@mlightcad/mtext-parser": "1.5.7",
+      "@mlightcad/mtext-renderer": "0.13.7",
+      "@mlightcad/common": "1.15.22",
+      "@mlightcad/geometry-engine": "3.15.22",
+      "@mlightcad/graphic-interface": "3.15.22",
+      "@mlightcad/emf-converter": "1.15.22"
+    },
+    "rendering_and_math": {
+      "three": "0.186.1",
+      "lodash-es": "4.17.21",
+      "mitt": "3.0.1",
+      "rbush": "4.0.1",
+      "@velipso/polybool": "1.1.1"
+    },
+    "dwg_converters": {
+      "@mlightcad/libredwg-converter": "3.15.22 (GPL-3.0 - Evaluation only)",
+      "@mlightcad/libredwg-web": "0.8.4 (GPL-3.0 - Evaluation only)",
+      "@mlightcad/dwg-converter": "Proprietary Commercial (Optional upgrade)"
+    },
+    "android_environment": {
+      "minSdkVersion": 26,
+      "targetSdkVersion": 34,
+      "kotlinVersion": "1.9.24",
+      "composeBomVersion": "2024.06.00",
+      "roomVersion": "2.6.1",
+      "webkitVersion": "1.11.0",
+      "gradlePluginVersion": "8.4.1"
+    }
+  },
+  "compliance_status": {
+    "core_distribution": "MIT / Apache-2.0 / 0BSD",
+    "gpl_isolation": "Strictly quarantined behind pluggable engine interface",
+    "offline_safe": true,
+    "unpinned_dependencies": 0
+  }
+}

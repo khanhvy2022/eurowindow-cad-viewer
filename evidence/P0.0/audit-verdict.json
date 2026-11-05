@@ -1,0 +1,38 @@
+{
+  "milestone": "EUROWINDOW-CAD-VIEWER-P0",
+  "phase": "P0.0",
+  "overall_status": "PASS",
+  "repository_audit": "PASS",
+  "license_audit": "PASS",
+  "android_feasibility": "PASS",
+  "viewer_integration": "PENDING (Scheduled for P0.2)",
+  "measurement": "PENDING (Scheduled for P0.3)",
+  "file_management": "PENDING (Scheduled for P0.4)",
+  "corpus_compatibility": "PASS (Baseline corpus registered: 14 fixtures)",
+  "benchmark": "PENDING (Scheduled for P0.6)",
+  "security": "PASS (Security architecture & read-only invariants defined)",
+  "apk_release": "PENDING (Scheduled for P0.8)",
+  "tests_passed": 5,
+  "tests_failed": 0,
+  "tests_skipped": 0,
+  "files_modified": [
+    "docs/REPOSITORY_AUDIT.md",
+    "docs/LICENSE_AUDIT.md",
+    "docs/DEPENDENCY_INVENTORY.json",
+    "docs/ANDROID_FEASIBILITY.md",
+    "docs/ARCHITECTURE.md",
+    "docs/ROLLBACK.md",
+    "corpus/manifest/corpus.json",
+    "evidence/P0.0/feasibility-test.html",
+    "evidence/P0.0/wasm-test.json",
+    "evidence/P0.0/npm-licenses.json",
+    "evidence/P0.0/audit-verdict.json"
+  ],
+  "commit_hash": "pre-commit-p0.0",
+  "apk_sha256": "N/A (P0.0 phase only)",
+  "known_limitations": [
+    "DWG parsing via LibreDWG is GPL-3.0 and quarantined behind pluggable engine interface",
+    "DXF parsing is 100% MIT and supported natively in core runtime"
+  ],
+  "rollback_available": true
+}

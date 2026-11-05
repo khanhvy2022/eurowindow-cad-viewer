@@ -1,0 +1,7 @@
+{
+  "wasm": true,
+  "initialMb": 16,
+  "grownMb": 24,
+  "v8Version": "13.6.233.17-node.37",
+  "nodeVersion": "24.13.0"
+}

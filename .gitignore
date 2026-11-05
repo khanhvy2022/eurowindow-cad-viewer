@@ -1,0 +1,27 @@
+# Node dependencies
+node_modules/
+.pnpm-store/
+cad-engine/mlightcad-repo/
+
+# Android build outputs & IDE
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+.idea/
+*.iml
+local.properties
+.cxx/
+
+# CAD Drawing originals (Confidential)
+corpus/originals/*
+!corpus/originals/.gitkeep
+
+# Evidence logs & dumps
+evidence/raw/
+*.log
+
+# OS generated
+Thumbs.db
+.DS_Store

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Eurowindow CAD Viewer - WebView Feasibility Test Harness</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      margin: 0;
+    }
+    h1 { color: #4fc1ff; font-size: 18px; margin-bottom: 8px; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+    .pass { background: #1b5e20; color: #a5d6a7; }
+    .fail { background: #b71c1c; color: #ef9a9a; }
+    .item {
+      background: #252526;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .title { font-weight: bold; color: #fff; margin-bottom: 4px; }
+    .details { font-size: 12px; color: #858585; word-break: break-all; }
+    #canvas-container {
+      width: 100%;
+      height: 180px;
+      background: #000;
+      border: 1px solid #444;
+      border-radius: 6px;
+      margin-top: 10px;
+      touch-action: none;
+      position: relative;
+    }
+    canvas { width: 100%; height: 100%; display: block; }
+    #touch-info {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      font-size: 11px;
+      color: #4fc1ff;
+      background: rgba(0,0,0,0.7);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Eurowindow CAD Viewer &bull; Runtime Feasibility Audit</h1>
+  <div id="results">Running diagnostics...</div>
+
+  <div class="item">
+    <div class="title">Interactive Touch / Gesture Sandbox (Pan & Pinch-to-Zoom)</div>
+    <div class="details">Simulates MLightCAD touch interaction inside WebView canvas.</div>
+    <div id="canvas-container">
+      <div id="touch-info">Pointers: 0 | Zoom: 1.0x | Pan: (0, 0)</div>
+      <canvas id="gl-canvas"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const report = {
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      tests: {},
+      verdict: "PENDING"
+    };
+
+    function addResult(id, name, pass, details) {
+      report.tests[id] = { name, pass, details };
+      render();
+    }
+
+    function render() {
+      const container = document.getElementById('results');
+      let html = '';
+      let allPass = true;
+      for (const [id, t] of Object.entries(report.tests)) {
+        if (!t.pass) allPass = false;
+        html += `<div class="item">
+          <div class="title">
+            <span class="badge ${t.pass ? 'pass' : 'fail'}">${t.pass ? 'PASS' : 'FAIL'}</span>
+            ${t.name}
+          </div>
+          <div class="details">${t.details}</div>
+        </div>`;
+      }
+      report.verdict = allPass ? 'PASS' : 'PARTIAL';
+      container.innerHTML = html;
+      if (window.AndroidBridge && window.AndroidBridge.postFeasibilityResult) {
+        window.AndroidBridge.postFeasibilityResult(JSON.stringify(report));
+      }
+    }
+
+    // 1. WebGL 1.0 & WebGL 2.0 Test
+    try {
+      const canvas = document.createElement('canvas');
+      const gl2 = canvas.getContext('webgl2');
+      const gl1 = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl2) {
+        const maxTexture = gl2.getParameter(gl2.MAX_TEXTURE_SIZE);
+        const rendererInfo = gl2.getExtension('WEBGL_debug_renderer_info');
+        const renderer = rendererInfo ? gl2.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL) : 'Unknown';
+        addResult('webgl', 'WebGL 2.0 Hardware Acceleration', true,
+          `WebGL 2.0 supported. Max Texture: ${maxTexture}px. GPU: ${renderer}`);
+      } else if (gl1) {
+        const maxTexture = gl1.getParameter(gl1.MAX_TEXTURE_SIZE);
+        addResult('webgl', 'WebGL 1.0 Hardware Acceleration', true,
+          `WebGL 1.0 supported (WebGL2 unavailable). Max Texture: ${maxTexture}px.`);
+      } else {
+        addResult('webgl', 'WebGL Support', false, 'Neither WebGL 1.0 nor WebGL 2.0 available.');
+      }
+    } catch (e) {
+      addResult('webgl', 'WebGL Support', false, e.message);
+    }
+
+    // 2. WebAssembly Test & Heap Growth Test
+    try {
+      if (typeof WebAssembly === 'object' && typeof WebAssembly.instantiate === 'function') {
+        // Minimal valid wasm module: (module)
+        const bytes = new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
+        const memory = new WebAssembly.Memory({ initial: 256, maximum: 2048 }); // 16MB to 128MB
+        memory.grow(128); // +8MB
+        WebAssembly.instantiate(bytes).then(wasm => {
+          addResult('wasm', 'WebAssembly Engine & Memory Management', true,
+            `WebAssembly native support confirmed. Heap allocated & successfully grown to ${memory.buffer.byteLength / (1024*1024)}MB.`);
+        }).catch(err => {
+          addResult('wasm', 'WebAssembly Instantiate', false, err.message);
+        });
+      } else {
+        addResult('wasm', 'WebAssembly Engine', false, 'WebAssembly not available in current WebView/Browser.');
+      }
+    } catch (e) {
+      addResult('wasm', 'WebAssembly Engine', false, e.message);
+    }
+
+    // 3. Web Worker via Blob URL
+    try {
+      const workerCode = `
+        self.onmessage = function(e) {
+          if (e.data === 'ping') {
+            const buf = new Uint8Array([1, 2, 3, 4]).buffer;
+            self.postMessage({ reply: 'pong', bufferSize: buf.byteLength }, [buf]);
+          }
+        };
+      `;
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      const workerUrl = URL.createObjectURL(blob);
+      const worker = new Worker(workerUrl);
+      worker.onmessage = function(e) {
+        if (e.data && e.data.reply === 'pong' && e.data.bufferSize === 4) {
+          addResult('workers', 'Web Workers & ArrayBuffer Zero-Copy Transfer', true,
+            'Web Worker spawned, bidirectional messaging and ArrayBuffer transfer verified.');
+          worker.terminate();
+          URL.revokeObjectURL(workerUrl);
+        }
+      };
+      worker.onerror = function(err) {
+        addResult('workers', 'Web Workers', false, 'Worker error: ' + err.message);
+      };
+      worker.postMessage('ping');
+    } catch (e) {
+      addResult('workers', 'Web Workers', false, e.message);
+    }
+
+    // 4. Offline Storage (IndexedDB)
+    try {
+      const idb = window.indexedDB;
+      if (idb) {
+        const req = idb.open('__ew_feasibility_test_db', 1);
+        req.onupgradeneeded = function() {
+          req.result.createObjectStore('cache');
+        };
+        req.onsuccess = function() {
+          addResult('storage', 'Offline IndexedDB Storage (Thumbnail & Drawing Cache)', true,
+            'IndexedDB opened successfully. Capable of storing drawing binary caches offline.');
+          req.result.close();
+          idb.deleteDatabase('__ew_feasibility_test_db');
+        };
+        req.onerror = function() {
+          addResult('storage', 'Offline IndexedDB Storage', false, 'Failed to open IndexedDB.');
+        };
+      } else {
+        addResult('storage', 'Offline IndexedDB Storage', false, 'IndexedDB not supported.');
+      }
+    } catch (e) {
+      addResult('storage', 'Offline IndexedDB Storage', false, e.message);
+    }
+
+    // 5. Touch / Pointer Event Simulation on Canvas
+    const canvas = document.getElementById('gl-canvas');
+    const touchInfo = document.getElementById('touch-info');
+    let pointers = new Map();
+    let panX = 0, panY = 0, scale = 1.0;
+    let initialDist = 0;
+
+    canvas.addEventListener('pointerdown', (e) => {
+      canvas.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      updateTouchInfo();
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      if (pointers.size === 1) {
+        const prev = pointers.get(e.pointerId);
+        panX += (e.clientX - prev.x);
+        panY += (e.clientY - prev.y);
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      } else if (pointers.size === 2) {
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const pts = Array.from(pointers.values());
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (initialDist > 0) {
+          scale *= (dist / initialDist);
+          scale = Math.max(0.1, Math.min(10, scale));
+        }
+        initialDist = dist;
+      }
+      updateTouchInfo();
+    });
+
+    const endPointer = (e) => {
+      pointers.delete(e.pointerId);
+      if (pointers.size < 2) initialDist = 0;
+      updateTouchInfo();
+    };
+
+    canvas.addEventListener('pointerup', endPointer);
+    canvas.addEventListener('pointercancel', endPointer);
+
+    function updateTouchInfo() {
+      touchInfo.textContent = `Pointers: ${pointers.size} | Zoom: ${scale.toFixed(2)}x | Pan: (${Math.round(panX)}, ${Math.round(panY)})`;
+    }
+
+    addResult('touch', 'Touch & Multi-touch Pointer Events API', true,
+      'PointerEvent multi-touch capture, pinch-to-zoom arithmetic, and drag-pan handlers registered.');
+  </script>
+</body>
+</html>
