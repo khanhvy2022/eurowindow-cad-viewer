@@ -132,16 +132,49 @@ fun ViewerScreen(
             }
 
             if (errorMessage != null) {
+                val isDwgOrFormatNotice = errorMessage?.contains("DWG", ignoreCase = true) == true ||
+                        errorMessage?.contains("hỗ trợ", ignoreCase = true) == true
                 AlertDialog(
-                    onDismissRequest = { errorMessage = null },
-                    title = { Text(text = "Thông báo CAD") },
-                    text = { Text(text = errorMessage ?: "") },
+                    onDismissRequest = {
+                        errorMessage = null
+                        onBack()
+                    },
+                    title = {
+                        Text(
+                            text = if (isDwgOrFormatNotice) "Thông báo định dạng bản vẽ" else "Lỗi hiển thị CAD",
+                            color = if (isDwgOrFormatNotice) Color(0xFFFFA726) else Color(0xFFEF5350),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp
+                        )
+                    },
+                    text = {
+                        Column {
+                            Text(
+                                text = errorMessage ?: "",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp
+                            )
+                            if (isDwgOrFormatNotice) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "💡 Gợi ý:\n• Trong giai đoạn P0.1, vui lòng sử dụng định dạng DXF (.dxf) để xem 100% offline.\n• Từ AutoCAD/ZWCAD trên máy tính, chọn 'Save As' -> 'AutoCAD 2018 DXF (*.dxf)'.\n• Hoặc quay lại trang chính và mở 3 bản vẽ mẫu Eurowindow có sẵn để thử nghiệm ngay.",
+                                    color = Color(0xFF90CAF9),
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp
+                                )
+                            }
+                        }
+                    },
                     confirmButton = {
-                        TextButton(onClick = {
-                            errorMessage = null
-                            onBack()
-                        }) {
-                            Text("Đóng")
+                        Button(
+                            onClick = {
+                                errorMessage = null
+                                onBack()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+                        ) {
+                            Text(text = "Đã hiểu", color = Color.White)
                         }
                     }
                 )

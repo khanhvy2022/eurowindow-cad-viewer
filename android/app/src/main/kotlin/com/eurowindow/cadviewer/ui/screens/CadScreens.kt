@@ -23,6 +23,39 @@ import com.eurowindow.cadviewer.saf.SafManager
 import java.text.SimpleDateFormat
 import java.util.*
 
+data class SampleDrawingItem(
+    val assetPath: String,
+    val title: String,
+    val fileName: String,
+    val specs: String,
+    val description: String,
+    val badgeColor: Color = Color(0xFF1565C0)
+)
+
+val SAMPLE_DRAWINGS = listOf(
+    SampleDrawingItem(
+        assetPath = "sample-drawings/sheet_0.dxf",
+        title = "Tấm cắt kỹ thuật Eurowindow",
+        fileName = "sheet_0.dxf",
+        specs = "11.858 chi tiết • 4 Layer • 2.2 MB",
+        description = "Bản vẽ kết cấu nhôm kính phức tạp, kiểm tra WebGL 2.0"
+    ),
+    SampleDrawingItem(
+        assetPath = "sample-drawings/block-color.dxf",
+        title = "Khối chi tiết màu sắc nhôm kính",
+        fileName = "block-color.dxf",
+        specs = "6 Layer màu • 621 KB",
+        description = "Bản vẽ kiểm tra bảng màu RGB/Index và hiển thị lớp CAD"
+    ),
+    SampleDrawingItem(
+        assetPath = "sample-drawings/find-blocks.dxf",
+        title = "Khung tên bản vẽ tiêu chuẩn",
+        fileName = "find-blocks.dxf",
+        specs = "Khung chuẩn • 4 Layer • 7.4 KB",
+        description = "Khung tên bản vẽ và khối thuộc tính kỹ thuật Eurowindow"
+    )
+)
+
 @Composable
 fun DrawingCard(
     drawing: DrawingMetadata,
@@ -112,17 +145,22 @@ fun RecentScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
                 Text(
                     text = "Chưa có bản vẽ nào mở gần đây",
-                    color = Color.Gray,
-                    fontSize = 15.sp
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Hãy chọn thẻ 'Bản vẽ' để mở tệp DXF/DWG từ thiết bị",
-                    color = Color(0xFF666666),
-                    fontSize = 12.sp
+                    text = "Hãy chọn thẻ 'Bản vẽ' bên dưới để mở bản vẽ mẫu có sẵn hoặc chọn tệp từ máy",
+                    color = Color(0xFF888888),
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp
                 )
             }
         }
@@ -193,37 +231,190 @@ fun DrawingsScreen(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(vertical = 16.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(24.dp)
-        ) {
+        item {
+            // Header
             Text(
-                text = "Bộ sưu tập bản vẽ Eurowindow",
+                text = "Bộ sưu tập bản vẽ CAD",
                 color = Color.White,
-                fontSize = 18.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Hỗ trợ định dạng DXF và DWG qua Storage Access Framework",
-                color = Color.Gray,
+                text = "Hỗ trợ chuẩn 100% Offline: Định dạng DXF (.dxf)",
+                color = Color(0xFF90CAF9),
                 fontSize = 13.sp
             )
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { launcher.launch(SafManager.createOpenDocumentIntent()) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .height(50.dp)
+            // Main Open File Button Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2638)),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text(text = "📂 Chọn bản vẽ từ bộ nhớ máy", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Mở tệp từ thiết bị",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Chọn tệp .dxf từ Bộ nhớ trong, Thư mục Tải về hoặc Zalo",
+                        color = Color(0xFFB0BEC5),
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Button(
+                        onClick = { launcher.launch(SafManager.createOpenDocumentIntent()) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Text(
+                            text = "📂 Chọn tệp từ thiết bị",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Sample Drawings Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Bản vẽ mẫu Eurowindow",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Surface(
+                    color = Color(0xFF2E7D32),
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text(
+                        text = "Thử ngay",
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Nhấn để xem ngay bản vẽ kỹ thuật không cần chọn tệp ngoài:",
+                color = Color(0xFF888888),
+                fontSize = 12.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        items(SAMPLE_DRAWINGS) { sample ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+                    .clickable {
+                        val uri = Uri.parse("asset://${sample.assetPath}")
+                        onOpenDrawing(uri, sample.fileName)
+                    },
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF252526))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .background(sample.badgeColor, shape = RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "DXF",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = sample.title,
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = sample.specs,
+                            color = Color(0xFF90CAF9),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = sample.description,
+                            color = Color(0xFF999999),
+                            fontSize = 11.sp,
+                            maxLines = 2
+                        )
+                    }
+
+                    Text(
+                        text = "▶",
+                        color = Color(0xFF90CAF9),
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
+            }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(20.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text(
+                        text = "ℹ️ Hướng dẫn định dạng tệp CAD",
+                        color = Color(0xFFFFA726),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "• Phiên bản P0.1 hoạt động 100% Offline với tệp chuẩn DXF (.dxf).\n• Với bản vẽ AutoCAD DWG (.dwg), hãy dùng tính năng 'Save As' -> 'AutoCAD 2018 DXF (*.dxf)' trên máy tính trước khi chuyển vào điện thoại để xem tức thì.",
+                        color = Color(0xFFB0BEC5),
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp
+                    )
+                }
             }
         }
     }
@@ -251,13 +442,13 @@ fun SettingsScreen() {
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = "Eurowindow CAD Viewer", color = Color.White, fontWeight = FontWeight.Bold)
-                Text(text = "Phiên bản: P0.1 (Kiểm thử cục bộ)", color = Color.Gray, fontSize = 13.sp)
+                Text(text = "Phiên bản: P0.1.1 (Kiểm thử cục bộ)", color = Color.Gray, fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(10.dp))
                 HorizontalDivider(color = Color(0xFF333333))
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(text = "Đơn vị đo mặc định: Milimét (mm)", color = Color(0xFFCCCCCC), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(text = "Động cơ hiển thị: MLightCAD WebGL (100% Offline)", color = Color(0xFFCCCCCC), fontSize = 14.sp)
+                Text(text = "Động cơ hiển thị: MLightCAD WebGL 2.0 (100% Offline)", color = Color(0xFFCCCCCC), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(text = "Trạng thái DWG Parser: Khóa theo chính sách P0.1 (Yêu cầu cấp phép thương mại)", color = Color(0xFFFFA726), fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(6.dp))

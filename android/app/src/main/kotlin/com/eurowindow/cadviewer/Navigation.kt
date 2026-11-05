@@ -10,8 +10,19 @@ sealed interface CadScreen {
 }
 
 @Composable
-fun MainNavigation() {
-    var currentScreen by remember { mutableStateOf<CadScreen>(CadScreen.Main) }
+fun MainNavigation(
+    initialUri: String? = null,
+    initialDisplayName: String? = null
+) {
+    var currentScreen by remember {
+        mutableStateOf<CadScreen>(
+            if (initialUri != null) {
+                CadScreen.Viewer(initialUri, initialDisplayName ?: "Bản vẽ CAD")
+            } else {
+                CadScreen.Main
+            }
+        )
+    }
 
     when (val screen = currentScreen) {
         is CadScreen.Main -> {
