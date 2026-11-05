@@ -114,9 +114,49 @@ async function initViewer(containerId: string): Promise<boolean> {
     AcApDocManager.instance.events.documentActivated.addEventListener(args => {
       console.log('[Eurowindow CAD] Document activated:', args.doc.docTitle);
       hideLoadingOverlay();
+      
+      // Auto-switch to Model Space if opened into an empty Paper Space
+      try {
+        const doc = args.doc;
+        const modelSpace = doc.database?.tables?.blockTable?.modelSpace;
+        if (modelSpace && doc.database.currentSpaceId !== modelSpace.objectId && modelSpace.entities.length > 0) {
+          console.log('[Eurowindow CAD] Auto-switching from Paper Space to Model Space (' + modelSpace.entities.length + ' entities)');
+          (AcApDocManager.instance as any).layoutManager?.setCurrentLayoutBtrId(modelSpace.objectId);
+        }
+      } catch (errLayout) {
+        console.warn('[Eurowindow CAD] Layout check:', errLayout);
+      }
+
       sendDocumentLoaded();
+      
+      // Schedule progressive framing passes
+      setTimeout(() => zoomToFit(), 150);
+      setTimeout(() => zoomToFit(), 600);
+      setTimeout(() => zoomToFit(), 1200);
     });
 
+    // Attach ResizeObserver to keep canvas sized to Android WebView container
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => {
+        try {
+          const curDoc = AcApDocManager.instance.curDocument;
+          if (curDoc && curDoc.view) {
+            (curDoc.view as any).onWindowResize();
+          }
+        } catch (_) {}
+      });
+      ro.observe(container);
+    }
+    window.addEventListener('resize', () => {
+      try {
+        const curDoc = AcApDocManager.instance.curDocument;
+        if (curDoc && curDoc.view) {
+          (curDoc.view as any).onWindowResize();
+        }
+      } catch (_) {}
+    });
+
+    (window as any).AcApDocManager = AcApDocManager;
     isInitialized = true;
     console.log('[Eurowindow CAD] Viewer initialized successfully with Direct DWG + DXF support.');
     
@@ -187,6 +227,8 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
     if (!success) {
       throw new Error(`Không thể giải mã dữ liệu bản vẽ: ${fileName}`);
     }
+    setTimeout(() => { zoomToFit(); }, 200);
+    setTimeout(() => { zoomToFit(); }, 700);
     return true;
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -204,11 +246,26 @@ async function loadDrawingFromBase64(fileName: string, base64Data: string): Prom
   return loadDrawingFromArrayBuffer(fileName, buffer);
 }
 
-function zoomToFit(): void {
+async function zoomToFit(): Promise<void> {
   try {
     const curDoc = AcApDocManager.instance.curDocument;
     if (curDoc && curDoc.view) {
+      // Ensure canvas size is synchronized with container
+      try {
+        (curDoc.view as any).onWindowResize();
+      } catch (_) {}
+
+      // Try smart extents first (focuses on the actual CAD geometry cluster, ignoring (0,0) outliers)
+      if (typeof (curDoc.view as any).zoomToSmartExtents === 'function') {
+        try {
+          await (curDoc.view as any).zoomToSmartExtents(1000);
+          curDoc.view.requestRender?.();
+          return;
+        } catch (_) {}
+      }
+      
       curDoc.view.zoomToFitDrawing();
+      curDoc.view.requestRender?.();
     }
   } catch (e) {
     console.warn('[Eurowindow CAD] zoomToFit error:', e);
@@ -332,6 +389,17 @@ window.EurowindowBridge = {
       AcApDocManager.instance.sendStringToExecute('clearmeasurements');
     } catch (e) {
       console.warn('[Eurowindow CAD] clearMeasurements error:', e);
+    }
+  },
+  switchToModelSpace: () => {
+    try {
+      const doc = AcApDocManager.instance.curDocument;
+      if (!doc || !doc.database) return;
+      const modelSpaceId = doc.database.tables.blockTable.modelSpace.objectId;
+      (AcApDocManager.instance as any).layoutManager?.setCurrentLayoutBtrId(modelSpaceId);
+      setTimeout(() => zoomToFit(), 300);
+    } catch (e) {
+      console.warn('[Eurowindow CAD] switchToModelSpace error:', e);
     }
   }
 };

@@ -60,6 +60,7 @@ fun ViewerScreen(
                     isLoadingDrawing = false
                     if (openResult.isSuccess) {
                         layersList = adapter.getLayers()
+                        adapter.zoomToFit()
                     } else {
                         errorMessage = openResult.exceptionOrNull()?.message ?: "Lỗi khi mở bản vẽ"
                     }
@@ -196,13 +197,23 @@ fun ViewerScreen(
                         }
                     )
 
-                    // 5. Fit màn hình
+                    // 5. Fit màn hình (Smart Extents Fit)
                     CadToolbarButton(
                         icon = "⛶",
                         label = "Vừa khung",
                         isSelected = false,
                         onClick = {
                             coroutineScope.launch { adapter.zoomToFit() }
+                        }
+                    )
+
+                    // 6. Không gian Mô hình (Model Space)
+                    CadToolbarButton(
+                        icon = "🏗️",
+                        label = "Mô hình",
+                        isSelected = false,
+                        onClick = {
+                            adapter.switchToModelSpace()
                         }
                     )
                 }

@@ -80,6 +80,10 @@ class MlightCadAdapter(
         return Result.success(Unit)
     }
 
+    fun switchToModelSpace() {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.switchToModelSpace) window.EurowindowBridge.switchToModelSpace();")
+    }
+
     fun startMeasureDistance() {
         jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.startMeasureDistance) window.EurowindowBridge.startMeasureDistance();")
     }

@@ -201,7 +201,9 @@ fun configureCadWebView(
             databaseEnabled = true
             allowFileAccess = true
             allowContentAccess = true
-            setSupportZoom(false)
+            useWideViewPort = true
+            loadWithOverviewMode = true
+            setSupportZoom(true)
             builtInZoomControls = false
             displayZoomControls = false
             cacheMode = WebSettings.LOAD_DEFAULT
