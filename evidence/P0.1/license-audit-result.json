@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-11-05T03:02:16.715Z",
+  "status": "PASS",
+  "violations_count": 0,
+  "dependencies_audited": [
+    "@mlightcad/cad-simple-viewer",
+    "@mlightcad/data-model",
+    "@mlightcad/three-renderer",
+    "@mlightcad/mtext-parser",
+    "@mlightcad/mtext-renderer",
+    "lodash-es",
+    "three",
+    "vite",
+    "typescript"
+  ]
+}

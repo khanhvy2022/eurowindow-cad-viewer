@@ -5,14 +5,20 @@ cad-engine/mlightcad-repo/
 
 # Android build outputs & IDE
 .gradle/
+**/build/
 build/
 app/build/
+android/app/build/
+android/.gradle/
 *.apk
 *.aab
 .idea/
 *.iml
 local.properties
 .cxx/
+
+# Local tools & JDKs
+tools/
 
 # CAD Drawing originals (Confidential)
 corpus/originals/*

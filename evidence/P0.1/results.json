@@ -1,0 +1,49 @@
+{
+  "phase": "P0.1",
+  "project": "Eurowindow CAD Viewer",
+  "packageId": "com.eurowindow.cadviewer",
+  "timestamp": "2026-11-05T11:36:00+07:00",
+  "status": "PASS",
+  "gates": {
+    "licenseAudit": {
+      "status": "PASS",
+      "gplCountInProduction": 0,
+      "details": "MIT/Apache/BSD verified via check-licenses.mjs"
+    },
+    "fileIntegrity": {
+      "status": "PASS",
+      "fixturesVerified": 14,
+      "fixturesPassed": 14,
+      "details": "All SHA-256 hashes in corpus match exactly"
+    },
+    "unitTests": {
+      "status": "PASS",
+      "totalTests": 7,
+      "passedTests": 7,
+      "failedTests": 0,
+      "testSuites": [
+        "com.eurowindow.cadviewer.engine.CadAdapterContractTest (3 tests)",
+        "com.eurowindow.cadviewer.saf.SafFileInfoTest (2 tests)",
+        "com.eurowindow.cadviewer.ui.main.MainScreenViewModelTest (2 tests)"
+      ]
+    },
+    "apkBuild": {
+      "status": "PASS",
+      "variant": "debug",
+      "apkPath": "release/debug/com.eurowindow.cadviewer-v1.0-debug.apk",
+      "sizeBytes": 10355619,
+      "sha256": "6B7302C0ABEA0ADBAC1F95B7F68EEEA1ED67600099DC0B3964F8169AFB12A3EC",
+      "assetsPackaged": [
+        "assets/web-runtime/index.html",
+        "assets/web-runtime/viewer-Y_WvYoXB.js"
+      ],
+      "nativeSoLibraries": []
+    },
+    "securityAndBoundary": {
+      "commercialDwgParserEnabled": false,
+      "gplFallback": false,
+      "isolatedProjectWorkspace": "F:\\EW DWG View",
+      "eurowindowAiStudioUntouched": true
+    }
+  }
+}
