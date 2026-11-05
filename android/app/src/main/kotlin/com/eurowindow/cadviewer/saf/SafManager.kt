@@ -50,10 +50,15 @@ object SafManager {
         }
     }
 
+    fun getAssetPath(uri: Uri): String {
+        val s = uri.toString()
+        return s.removePrefix("asset://").removePrefix("asset:/").removePrefix("/")
+    }
+
     private fun detectFormatFromBytes(context: Context, uri: Uri): String? {
         return try {
             val stream: InputStream? = if (uri.scheme == "asset") {
-                val assetPath = uri.path?.removePrefix("/") ?: uri.schemeSpecificPart.removePrefix("//")
+                val assetPath = getAssetPath(uri)
                 context.assets.open(assetPath)
             } else {
                 context.contentResolver.openInputStream(uri)
@@ -79,7 +84,7 @@ object SafManager {
 
     fun queryFileInfo(context: Context, uri: Uri): SafFileInfo {
         if (uri.scheme == "asset") {
-            val assetPath = uri.path?.removePrefix("/") ?: uri.schemeSpecificPart.removePrefix("//")
+            val assetPath = getAssetPath(uri)
             val name = assetPath.substringAfterLast('/')
             val ext = name.substringAfterLast('.', "").lowercase()
             val size = try {
@@ -153,7 +158,7 @@ object SafManager {
         try {
             val fileInfo = queryFileInfo(context, uri)
             val inputStream: InputStream = if (uri.scheme == "asset") {
-                val assetPath = uri.path?.removePrefix("/") ?: uri.schemeSpecificPart.removePrefix("//")
+                val assetPath = getAssetPath(uri)
                 context.assets.open(assetPath)
             } else {
                 context.contentResolver.openInputStream(uri)

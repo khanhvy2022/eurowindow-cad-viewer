@@ -19,6 +19,10 @@ class MlightCadAdapter(
     private var currentDrawingInfo: DrawingInfo? = null
     private var pendingLoadDeferred: CompletableDeferred<DrawingInfo>? = null
 
+    @Volatile
+    var currentDrawingBytes: ByteArray? = null
+        private set
+
     override suspend fun initialize(): Boolean {
         isEngineReady = true
         return true
@@ -36,9 +40,12 @@ class MlightCadAdapter(
 
         val deferred = CompletableDeferred<DrawingInfo>()
         pendingLoadDeferred = deferred
+        currentDrawingBytes = bytes
 
-        val base64Data = Base64.getEncoder().encodeToString(bytes)
-        val script = "window.EurowindowBridge.loadDrawingFromBase64('$fileName', '$base64Data');"
+        // We trigger native stream loading via https://cad.eurowindow.local/current-drawing-stream
+        // which avoids Android WebView IPC Binder 1MB transaction limits on multi-megabyte CAD files,
+        // while maintaining loadDrawingFromBase64 fallback signature.
+        val script = "if (window.loadCurrentDrawing) { window.loadCurrentDrawing('$fileName'); } else if (window.EurowindowBridge && window.EurowindowBridge.loadDrawingFromArrayBuffer) { fetch('https://cad.eurowindow.local/current-drawing-stream').then(r => r.arrayBuffer()).then(b => window.EurowindowBridge.loadDrawingFromArrayBuffer('$fileName', b)); } else { window.EurowindowBridge.loadDrawingFromBase64('$fileName', ''); }"
         jsExecutor(script)
 
         return try {
@@ -57,11 +64,11 @@ class MlightCadAdapter(
     override suspend fun closeDrawing(): Result<Unit> {
         jsExecutor("window.EurowindowBridge.closeDrawing();")
         currentDrawingInfo = null
+        currentDrawingBytes = null
         return Result.success(Unit)
     }
 
     override suspend fun getLayers(): List<CadLayer> {
-        // Returned through JS bridge callbacks or synchronous query when available
         return emptyList()
     }
 
