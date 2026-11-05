@@ -1,30 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+
+    <!-- Elevation Ambient Shadow for 3D Window Frame -->
+    <path
+        android:fillColor="#40000000"
+        android:pathData="M29,28 L79,28 A4,4 0 0,1 83,32 L83,82 A4,4 0 0,1 79,86 L29,86 A4,4 0 0,1 25,82 L25,32 A4,4 0 0,1 29,28 Z" />
+
+    <!-- Outer Architectural Window Frame (Eurowindow EA55 Chamfered Profile) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,26 L76,26 A4,4 0 0,1 80,30 L80,78 A4,4 0 0,1 76,82 L28,82 A4,4 0 0,1 24,78 L24,30 A4,4 0 0,1 28,26 Z" />
+
+    <!-- Inner Dark Frame Cavity -->
+    <path
+        android:fillColor="#071936"
+        android:pathData="M28,30 L76,30 L76,78 L28,78 Z" />
+
+    <!-- Glass Pane 1 (Top-Left) with Cyan Gradient -->
+    <path android:pathData="M30,32 L50,32 L50,52 L30,52 Z">
         <aapt:attr name="android:fillColor">
             <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
+                android:startX="30"
+                android:startY="32"
+                android:endX="50"
+                android:endY="52"
                 android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
+                <item android:color="#38BDF8" android:offset="0.0" />
+                <item android:color="#0284C7" android:offset="1.0" />
             </gradient>
         </aapt:attr>
     </path>
+    <!-- Glass Reflection Highlight 1 -->
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M30,32 L42,32 L30,44 Z" />
+
+    <!-- Glass Pane 2 (Top-Right) -->
+    <path android:pathData="M54,32 L74,32 L74,52 L54,52 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="32"
+                android:endX="74"
+                android:endY="52"
+                android:type="linear">
+                <item android:color="#38BDF8" android:offset="0.0" />
+                <item android:color="#0284C7" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Glass Reflection Highlight 2 -->
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M54,32 L66,32 L54,44 Z" />
+
+    <!-- Glass Pane 3 (Bottom-Left) -->
+    <path android:pathData="M30,56 L50,56 L50,76 L30,76 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="30"
+                android:startY="56"
+                android:endX="50"
+                android:endY="76"
+                android:type="linear">
+                <item android:color="#38BDF8" android:offset="0.0" />
+                <item android:color="#0284C7" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Glass Pane 4 (Bottom-Right) -->
+    <path android:pathData="M54,56 L74,56 L74,76 L54,76 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="56"
+                android:endX="74"
+                android:endY="76"
+                android:type="linear">
+                <item android:color="#38BDF8" android:offset="0.0" />
+                <item android:color="#0284C7" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Central Transom & Mullion (Aluminum Cross) -->
+    <path
+        android:fillColor="#E2E8F0"
+        android:pathData="M50,30 L54,30 L54,78 L50,78 Z M28,52 L76,52 L76,56 L28,56 Z" />
+
+    <!-- Precision CAD Dimension Lines on Top (< 55 >) in Gold -->
+    <path
+        android:strokeColor="#F59E0B"
+        android:strokeWidth="1.2"
+        android:pathData="M24,20 L24,24 M80,20 L80,24 M25,22 L79,22" />
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M24,22 L28,20 L28,24 Z M80,22 L76,20 L76,24 Z" />
+
+    <!-- Brand Monogram Pill Badge (Bottom-Right Elevation) -->
+    <!-- Badge Shadow -->
+    <path
+        android:fillColor="#50000000"
+        android:pathData="M44,63 L82,63 A6,6 0 0,1 88,69 L88,77 A6,6 0 0,1 82,83 L44,83 A6,6 0 0,1 38,77 L38,69 A6,6 0 0,1 44,63 Z" />
+    <!-- Badge Body -->
+    <path
+        android:fillColor="#0A1E3F"
+        android:pathData="M43,61 L81,61 A5,5 0 0,1 86,66 L86,75 A5,5 0 0,1 81,80 L43,80 A5,5 0 0,1 38,75 L38,66 A5,5 0 0,1 43,61 Z" />
+    <path
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="1.2"
+        android:pathData="M43,61 L81,61 A5,5 0 0,1 86,66 L86,75 A5,5 0 0,1 81,80 L43,80 A5,5 0 0,1 38,75 L38,66 A5,5 0 0,1 43,61 Z" />
+
+    <!-- Lettermark "E" in Crisp White -->
     <path
         android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:pathData="M43,66 L52,66 L52,68 L46,68 L46,69.5 L51,69.5 L51,71.5 L46,71.5 L46,73 L52,73 L52,75 L43,75 Z" />
+
+    <!-- Lettermark "W" in Blueprint Cyan -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M54,66 L56.5,66 L58.5,72 L60.5,66 L62.5,66 L64.5,72 L66.5,66 L69,66 L66,75 L63.5,75 L61.5,69 L59.5,75 L57,75 Z" />
+
+    <!-- Mini CAD Tag in Gold -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M73,67 A3,3 0 0,0 70,70.5 A3,3 0 0,0 73,74 L74,74 L74,72.5 L73,72.5 A1.5,1.5 0 0,1 71.5,70.5 A1.5,1.5 0 0,1 73,69 L74,69 L74,67 Z M76,67 L75,74 L76.5,74 L77,72.5 L79,72.5 L79.5,74 L81,74 L80,67 Z M77.5,71 L78,69 L78.5,71 Z" />
 </vector>
