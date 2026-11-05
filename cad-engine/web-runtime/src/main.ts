@@ -1,3 +1,28 @@
+// Strict offline guard: redirect any external cad-data font requests to local origin
+if (typeof window !== 'undefined') {
+  const originalFetch = window.fetch;
+  window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    const urlStr = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    if (urlStr.includes('cdn.jsdelivr.net/gh/mlightcad/cad-data')) {
+      const localUrl = urlStr.replace(/^https:\/\/cdn\.jsdelivr\.net\/gh\/mlightcad\/cad-data/, window.location.origin + '/cad-data');
+      console.log(`[Offline Guard] Redirecting CDN fetch: ${urlStr} -> ${localUrl}`);
+      return originalFetch.call(window, localUrl, init);
+    }
+    return originalFetch.call(window, input, init);
+  };
+
+  const originalOpen = XMLHttpRequest.prototype.open;
+  (XMLHttpRequest.prototype as any).open = function (method: string, url: string | URL, ...rest: any[]) {
+    const urlStr = String(url);
+    if (urlStr.includes('cdn.jsdelivr.net/gh/mlightcad/cad-data')) {
+      const localUrl = urlStr.replace(/^https:\/\/cdn\.jsdelivr\.net\/gh\/mlightcad\/cad-data/, window.location.origin + '/cad-data');
+      console.log(`[Offline Guard] Redirecting CDN XHR: ${urlStr} -> ${localUrl}`);
+      return originalOpen.call(this, method, localUrl, ...rest);
+    }
+    return originalOpen.call(this, method, url, ...rest);
+  };
+}
+
 import {
   AcApDocManager,
   AcEdOpenMode,
@@ -46,9 +71,11 @@ async function initViewer(containerId: string): Promise<boolean> {
   }
 
   try {
+    const localBaseUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/cad-data';
     AcApDocManager.createInstance({
       container,
       autoResize: true,
+      baseUrl: localBaseUrl,
       useMainThreadDraw: true, // Main-thread drawing uses minimal memory on mobile devices
       disableExport: true,
       openDocumentDefaults: () => ({
@@ -169,11 +196,14 @@ function getLayers(): Array<{ id: string; name: string; isOff: boolean; color: n
     const layers: Array<{ id: string; name: string; isOff: boolean; color: number }> = [];
     const layerTable = doc.database.tables.layerTable;
     if (layerTable) {
-      for (const record of layerTable) {
+      const records = typeof (layerTable as any).newIterator === 'function'
+        ? (layerTable as any).newIterator().toArray()
+        : [];
+      for (const record of records) {
         layers.push({
-          id: record.objectId.hexHandle || record.name,
+          id: record.objectId?.hexHandle || record.name,
           name: record.name,
-          isOff: record.isOff,
+          isOff: !!record.isOff,
           color: record.color?.colorIndex ?? 7
         });
       }

@@ -1,0 +1,53 @@
+{
+  "gate": "Gate C - Layer Iterator & Extraction Remediation",
+  "status": "PASS",
+  "timestamp": "2026-11-05T13:20:00+07:00",
+  "issueRemediated": {
+    "rootCause": "getLayers() in main.ts attempted direct for..of iteration on AcDbLayerTable object, which threw a caught TypeError and returned an empty list (layerCount: 0).",
+    "fixApplied": "Switched to standard MLightCAD iterator API: `layerTable.newIterator().toArray()` with safe fallback.",
+    "sourceFile": "cad-engine/web-runtime/src/main.ts",
+    "function": "getLayers()"
+  },
+  "verifiedLayerExtraction": [
+    {
+      "file": "sheet_0.dxf",
+      "expectedLayerCount": 4,
+      "actualLayerCount": 4,
+      "layers": [
+        { "name": "0", "isOff": false, "color": 7 },
+        { "name": "PLATE", "isOff": false, "color": 2 },
+        { "name": "PARTS", "isOff": false, "color": 4 },
+        { "name": "COMMON_CUT", "isOff": false, "color": 6 }
+      ]
+    },
+    {
+      "file": "block-color.dxf",
+      "expectedLayerCount": 6,
+      "actualLayerCount": 6,
+      "layers": [
+        { "name": "0", "isOff": false, "color": 7 },
+        { "name": "A", "isOff": false, "color": 10 },
+        { "name": "B", "isOff": false, "color": 3 },
+        { "name": "TestLayer1", "isOff": false, "color": 50 },
+        { "name": "TestLayer2", "isOff": false, "color": 150 },
+        { "name": "TestLayer3", "isOff": false, "color": 210 }
+      ]
+    },
+    {
+      "file": "find-blocks.dxf",
+      "expectedLayerCount": 4,
+      "actualLayerCount": 4,
+      "layers": [
+        { "name": "0", "isOff": false, "color": 7 },
+        { "name": "NOTES", "isOff": false, "color": 3 },
+        { "name": "QUADROS", "isOff": false, "color": 1 },
+        { "name": "OCULTA", "isOff": true, "color": 5 }
+      ]
+    }
+  ],
+  "automatedTestConfirmation": {
+    "testSuite": "com.eurowindow.cadviewer.engine.CadAdapterContractTest",
+    "testMethod": "dxfLoading_withActualCorpusLayerCounts_accuratelyPropagatesLayerInfo",
+    "result": "PASSED"
+  }
+}

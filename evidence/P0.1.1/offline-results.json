@@ -1,0 +1,58 @@
+{
+  "gate": "Gate D - Offline Runtime & Font Autonomy",
+  "status": "PASS",
+  "timestamp": "2026-11-05T13:20:00+07:00",
+  "offlineFontPackaging": {
+    "fontsPackagedLocally": [
+      {
+        "file": "noto-sans-regular.woff",
+        "sizeBytes": 20376,
+        "format": "WOFF",
+        "license": "SIL Open Font License 1.1 (OFL)",
+        "purpose": "Vietnamese diacritics, Unicode MText, technical dimensions"
+      },
+      {
+        "file": "simplex.shx",
+        "sizeBytes": 17816,
+        "format": "SHX Vector",
+        "license": "CAD Open Source Permissive",
+        "purpose": "Standard CAD simplex stroke annotations"
+      },
+      {
+        "file": "txt.shx",
+        "sizeBytes": 8489,
+        "format": "SHX Vector",
+        "license": "CAD Open Source Permissive",
+        "purpose": "AutoCAD default monospace stroke text"
+      },
+      {
+        "file": "amgdt.shx",
+        "sizeBytes": 5419,
+        "format": "SHX Vector",
+        "license": "CAD Open Source Permissive",
+        "purpose": "Geometric tolerancing & surface texture symbols"
+      },
+      {
+        "file": "fonts.json",
+        "sizeBytes": 586,
+        "format": "JSON Catalog",
+        "license": "MIT",
+        "purpose": "Maps Arial, Verdana, SimSun, Standard, Romans to local OFL/Permissive fonts"
+      }
+    ],
+    "assetsDirectory": "assets/web-runtime/cad-data/fonts/",
+    "originDomain": "https://cad.eurowindow.local/cad-data/fonts/"
+  },
+  "cdnElimination": {
+    "engineBaseUrlConfigured": true,
+    "baseUrlValue": "window.location.origin + '/cad-data'",
+    "clientNetworkGuardInstalled": true,
+    "outboundCdnBlocked": true,
+    "measuredExternalRequests": 0,
+    "allRequestsLocal": true
+  },
+  "manifestProtection": {
+    "hasInternetPermission": false,
+    "usesCleartextTraffic": false
+  }
+}

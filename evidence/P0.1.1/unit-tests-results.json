@@ -1,0 +1,57 @@
+{
+  "gate": "Unit & Contract Tests Gate",
+  "status": "PASS",
+  "timestamp": "2026-11-05T13:20:00+07:00",
+  "totalTests": 13,
+  "passedTests": 13,
+  "failedTests": 0,
+  "executionDuration": "0.711s",
+  "suites": [
+    {
+      "name": "com.eurowindow.cadviewer.data.RoomMetadataContractTest",
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "cases": [
+        "drawingMetadata_hasCorrectDefaultsAndProperties",
+        "measurementSidecar_preservesIsolationFromCadFile",
+        "drawingMetadataList_sortsByLastOpenedTimestampDescending"
+      ]
+    },
+    {
+      "name": "com.eurowindow.cadviewer.engine.CadAdapterContractTest",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "cases": [
+        "dwgLoading_whenCommercialParserDisabled_failsWithSpecificException",
+        "dxfLoading_triggersJsBridgeCall",
+        "unsupportedFileExtension_failsWithUnsupportedFormatException",
+        "dxfLoading_withActualCorpusLayerCounts_accuratelyPropagatesLayerInfo",
+        "layerVisibilityToggle_triggersCorrectBridgeCall",
+        "zoomToFit_triggersCorrectBridgeCall"
+      ]
+    },
+    {
+      "name": "com.eurowindow.cadviewer.saf.SafFileInfoTest",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "cases": [
+        "supportedMimeTypes_containsDxfAndDwg",
+        "safFileInfo_correctlyExtractsExtension"
+      ]
+    },
+    {
+      "name": "com.eurowindow.cadviewer.ui.main.MainScreenViewModelTest",
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "cases": [
+        "initialTabIsRecent",
+        "tabSelectionUpdatesActiveTab"
+      ]
+    }
+  ],
+  "reportHtml": "android/app/build/reports/tests/testDebugUnitTest/index.html"
+}

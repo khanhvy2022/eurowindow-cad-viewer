@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-05T04:48:36.552Z",
+  "timestamp": "2026-11-05T06:18:37.128Z",
   "capabilities": {
     "hasWebGL": true,
     "webglRenderer": "WebKit WebGL",
@@ -9,56 +9,50 @@
     "bridgeReady": true
   },
   "network": {
-    "totalRequests": 8,
-    "externalRequests": [
-      {
-        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simsun.woff",
-        "method": "GET"
-      },
-      {
-        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/hztxt.shx",
-        "method": "GET"
-      },
-      {
-        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simplex.shx",
-        "method": "GET"
-      },
-      {
-        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/amgdt.shx",
-        "method": "GET"
-      },
-      {
-        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/txt.shx",
-        "method": "GET"
-      },
-      {
-        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/arial.woff",
-        "method": "GET"
-      },
-      {
-        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/verdana.woff",
-        "method": "GET"
-      },
-      {
-        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simkai.woff",
-        "method": "GET"
-      }
-    ],
-    "allLocal": false
+    "totalRequests": 1,
+    "externalRequests": [],
+    "allLocal": true
   },
   "drawings": [
     {
       "file": "find-blocks.dxf",
       "sizeBytes": 7410,
-      "durationMs": 70.36,
+      "durationMs": 70.76,
       "status": "PASS",
       "drawingInfo": {
         "info": {
           "hasDocument": true,
           "title": "find-blocks.dxf",
           "fileName": "find-blocks.dxf",
-          "layerCount": 0
+          "layerCount": 4
         },
+        "layers": [
+          {
+            "id": "0",
+            "name": "0",
+            "isOff": false,
+            "color": 7
+          },
+          {
+            "id": "NOTES",
+            "name": "NOTES",
+            "isOff": false,
+            "color": 3
+          },
+          {
+            "id": "QUADROS",
+            "name": "QUADROS",
+            "isOff": false,
+            "color": 1
+          },
+          {
+            "id": "OCULTA",
+            "name": "OCULTA",
+            "isOff": true,
+            "color": 5
+          }
+        ],
+        "layerCount": 4,
         "canvasFound": true,
         "canvasWidth": 1264,
         "canvasHeight": 649
@@ -68,15 +62,54 @@
     {
       "file": "block-color.dxf",
       "sizeBytes": 621441,
-      "durationMs": 81.44,
+      "durationMs": 78.18,
       "status": "PASS",
       "drawingInfo": {
         "info": {
           "hasDocument": true,
           "title": "block-color.dxf",
           "fileName": "block-color.dxf",
-          "layerCount": 0
+          "layerCount": 6
         },
+        "layers": [
+          {
+            "id": "0",
+            "name": "0",
+            "isOff": false,
+            "color": 7
+          },
+          {
+            "id": "A",
+            "name": "A",
+            "isOff": false,
+            "color": 10
+          },
+          {
+            "id": "B",
+            "name": "B",
+            "isOff": false,
+            "color": 3
+          },
+          {
+            "id": "TestLayer1",
+            "name": "TestLayer1",
+            "isOff": false,
+            "color": 50
+          },
+          {
+            "id": "TestLayer2",
+            "name": "TestLayer2",
+            "isOff": false,
+            "color": 150
+          },
+          {
+            "id": "TestLayer3",
+            "name": "TestLayer3",
+            "isOff": false,
+            "color": 210
+          }
+        ],
+        "layerCount": 6,
         "canvasFound": true,
         "canvasWidth": 1264,
         "canvasHeight": 649
@@ -86,15 +119,42 @@
     {
       "file": "sheet_0.dxf",
       "sizeBytes": 2212649,
-      "durationMs": 283.18,
+      "durationMs": 266.76,
       "status": "PASS",
       "drawingInfo": {
         "info": {
           "hasDocument": true,
           "title": "sheet_0.dxf",
           "fileName": "sheet_0.dxf",
-          "layerCount": 0
+          "layerCount": 4
         },
+        "layers": [
+          {
+            "id": "0",
+            "name": "0",
+            "isOff": false,
+            "color": 7
+          },
+          {
+            "id": "PLATE",
+            "name": "PLATE",
+            "isOff": false,
+            "color": 2
+          },
+          {
+            "id": "PARTS",
+            "name": "PARTS",
+            "isOff": false,
+            "color": 4
+          },
+          {
+            "id": "COMMON_CUT",
+            "name": "COMMON_CUT",
+            "isOff": false,
+            "color": 6
+          }
+        ],
+        "layerCount": 4,
         "canvasFound": true,
         "canvasWidth": 1264,
         "canvasHeight": 649

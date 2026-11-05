@@ -1,0 +1,8 @@
+{
+    "timestamp":  "2026-11-05T13:29:10.5211063+07:00",
+    "gate":  "Gate E - Target Device Acceptance",
+    "targetApk":  "F:\\EW DWG View\\release\\debug\\com.eurowindow.cadviewer-v1.0-debug.apk",
+    "reason":  "No physical Android device connected via ADB.",
+    "status":  "BLOCKED - DEVICE NOT AVAILABLE",
+    "targetApkSha256":  "0938F02A34090EC7EA4FE5FA06736D44892DF1F473900DA953C5470FE159FF90"
+}

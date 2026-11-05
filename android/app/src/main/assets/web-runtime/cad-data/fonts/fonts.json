@@ -1,0 +1,35 @@
+[
+  {
+    "file": "simplex.shx",
+    "name": ["simplex", "simplex8", "standard", "romans", "romanc"],
+    "type": "shx"
+  },
+  {
+    "file": "txt.shx",
+    "name": ["txt", "txt8", "monotxt"],
+    "type": "shx"
+  },
+  {
+    "file": "amgdt.shx",
+    "name": ["amgdt", "amgdtans"],
+    "type": "shx"
+  },
+  {
+    "file": "noto-sans-regular.woff",
+    "name": [
+      "notosans",
+      "noto sans",
+      "arial",
+      "verdana",
+      "tahoma",
+      "times",
+      "simsun",
+      "simkai",
+      "simhei",
+      "hztxt",
+      "unicode",
+      "default"
+    ],
+    "type": "mesh"
+  }
+]

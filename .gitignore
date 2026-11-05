@@ -10,6 +10,8 @@ build/
 app/build/
 android/app/build/
 android/.gradle/
+.kotlin/
+android/.kotlin/
 *.apk
 *.aab
 .idea/

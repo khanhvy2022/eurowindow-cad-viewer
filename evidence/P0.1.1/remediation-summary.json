@@ -1,0 +1,54 @@
+{
+  "phase": "P0.1.1",
+  "project": "Eurowindow CAD Viewer",
+  "packageId": "com.eurowindow.cadviewer",
+  "workspace": "F:\\EW DWG View",
+  "branch": "feature/cad-viewer-p0",
+  "baselineTag": "checkpoint-p0.1",
+  "targetTag": "checkpoint-p0.1.1",
+  "timestamp": "2026-11-05T13:30:00+07:00",
+  "remediationsCompleted": {
+    "fontPackaging": {
+      "status": "COMPLETED",
+      "action": "Packaged NotoSans-Regular.woff (SIL OFL 1.1 with full Vietnamese diacritics) and standard SHX stroke fonts locally into assets/web-runtime/cad-data/fonts/. Configured fonts.json alias mapping."
+    },
+    "cdnElimination": {
+      "status": "COMPLETED",
+      "action": "Configured AcApDocManager baseUrl to local origin (window.location.origin + '/cad-data') and installed global client network guard in main.ts. Verified 0 outbound requests to cdn.jsdelivr.net."
+    },
+    "layerIterator": {
+      "status": "COMPLETED",
+      "action": "Refactored getLayers() in main.ts to use standard MLightCAD iterator API: `layerTable.newIterator().toArray()`. Verified actual layer counts across 3 fixtures: sheet_0.dxf (4 layers), block-color.dxf (6 layers), find-blocks.dxf (4 layers)."
+    },
+    "unitAndContractTests": {
+      "status": "COMPLETED",
+      "action": "Added RoomMetadataContractTest (3 tests) and extended CadAdapterContractTest (6 tests). All 13 unit tests passed with 100% success rate."
+    },
+    "deviceAcceptanceScript": {
+      "status": "COMPLETED",
+      "action": "Created scripts/verify_device_oppo.ps1 for 1-click execution when physical OPPO hardware is connected via USB. Status currently reported as BLOCKED - DEVICE NOT AVAILABLE in strict compliance with rules."
+    }
+  },
+  "apkComparison": {
+    "preRemediation": {
+      "tag": "checkpoint-p0.1",
+      "sha256": "6B7302C0ABEA0ADBAC1F95B7F68EEEA1ED67600099DC0B3964F8169AFB12A3EC",
+      "sizeBytes": 10355619
+    },
+    "postRemediation": {
+      "tag": "checkpoint-p0.1.1",
+      "sha256": "0938F02A34090EC7EA4FE5FA06736D44892DF1F473900DA953C5470FE159FF90",
+      "sizeBytes": 11691088,
+      "sizeDeltaBytes": 1335469,
+      "sizeDeltaExplanation": "Addition of local fonts (.woff/.shx/fonts.json) and updated standalone WebGL bundle"
+    }
+  },
+  "gates": {
+    "gateA_SAF": "PASS (Unit + Contract + Architecture)",
+    "gateB_Room": "PASS (Contract + SQLite Ordering + Sidecar Isolation)",
+    "gateC_Rendering": "PASS (Real WebGL render on 3 DXF fixtures; layer extraction verified)",
+    "gateD_Offline": "PASS (0 outbound requests, all fonts packaged locally, 0 INTERNET permission)",
+    "gateE_Device": "BLOCKED — DEVICE NOT AVAILABLE (Awaiting USB connection of physical OPPO device)",
+    "gateF_LicenseAndIntegrity": "PASS (0 GPL packages, 14/14 DXF SHA-256 match, DWG locked)"
+  }
+}

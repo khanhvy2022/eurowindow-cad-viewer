@@ -1,34 +1,6 @@
 [
   {
-    "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simsun.woff",
-    "method": "GET"
-  },
-  {
-    "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/hztxt.shx",
-    "method": "GET"
-  },
-  {
-    "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simplex.shx",
-    "method": "GET"
-  },
-  {
-    "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/amgdt.shx",
-    "method": "GET"
-  },
-  {
-    "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/txt.shx",
-    "method": "GET"
-  },
-  {
-    "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/arial.woff",
-    "method": "GET"
-  },
-  {
-    "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/verdana.woff",
-    "method": "GET"
-  },
-  {
-    "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simkai.woff",
+    "url": "http://localhost:8089/cad-data/fonts/noto-sans-regular.woff",
     "method": "GET"
   }
 ]
