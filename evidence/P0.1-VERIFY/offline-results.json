@@ -1,0 +1,37 @@
+{
+  "gate": "Gate D — Offline Runtime",
+  "status": "PARTIAL",
+  "timestamp": "2026-11-05T11:52:00+07:00",
+  "manifestAudit": {
+    "hasInternetPermission": false,
+    "permissions": [],
+    "usesCleartextTraffic": false,
+    "manifestPath": "android/app/src/main/AndroidManifest.xml"
+  },
+  "runtimePackaging": {
+    "engineBundledInAssets": true,
+    "assets": [
+      "assets/web-runtime/index.html (1.82 kB)",
+      "assets/web-runtime/viewer-Y_WvYoXB.js (4.24 MB)"
+    ],
+    "webglAvailableOffline": true,
+    "wasmAvailableOffline": true,
+    "workersAvailableOffline": true
+  },
+  "networkInspection": {
+    "localAssetDomain": "https://cad.eurowindow.local/",
+    "assetLoaderIntercept": true,
+    "detectedExternalRequests": [
+      "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simsun.woff",
+      "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/hztxt.shx",
+      "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simplex.shx",
+      "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/amgdt.shx",
+      "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/txt.shx",
+      "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/arial.woff",
+      "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/verdana.woff",
+      "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simkai.woff"
+    ],
+    "impact": "On device, Android OS blocks these requests because INTERNET permission is not declared in AndroidManifest.xml. Rendering geometry succeeds, but console emits network warning."
+  },
+  "remediationForP02": "Bundle standard CAD fonts (.shx / .woff) into assets/web-runtime/fonts/ and configure MLightCAD font baseUrl to cad.eurowindow.local to achieve 100% zero-outbound font loading."
+}

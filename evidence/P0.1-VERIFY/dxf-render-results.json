@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-11-05T04:48:36.552Z",
+  "capabilities": {
+    "hasWebGL": true,
+    "webglRenderer": "WebKit WebGL",
+    "webglVendor": "WebKit",
+    "hasWebAssembly": true,
+    "hasWorker": true,
+    "bridgeReady": true
+  },
+  "network": {
+    "totalRequests": 8,
+    "externalRequests": [
+      {
+        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simsun.woff",
+        "method": "GET"
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/hztxt.shx",
+        "method": "GET"
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simplex.shx",
+        "method": "GET"
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/amgdt.shx",
+        "method": "GET"
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/txt.shx",
+        "method": "GET"
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/arial.woff",
+        "method": "GET"
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/verdana.woff",
+        "method": "GET"
+      },
+      {
+        "url": "https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simkai.woff",
+        "method": "GET"
+      }
+    ],
+    "allLocal": false
+  },
+  "drawings": [
+    {
+      "file": "find-blocks.dxf",
+      "sizeBytes": 7410,
+      "durationMs": 70.36,
+      "status": "PASS",
+      "drawingInfo": {
+        "info": {
+          "hasDocument": true,
+          "title": "find-blocks.dxf",
+          "fileName": "find-blocks.dxf",
+          "layerCount": 0
+        },
+        "canvasFound": true,
+        "canvasWidth": 1264,
+        "canvasHeight": 649
+      },
+      "screenshot": "F:\\EW DWG View\\evidence\\P0.1-VERIFY\\screenshots\\find-blocks.png"
+    },
+    {
+      "file": "block-color.dxf",
+      "sizeBytes": 621441,
+      "durationMs": 81.44,
+      "status": "PASS",
+      "drawingInfo": {
+        "info": {
+          "hasDocument": true,
+          "title": "block-color.dxf",
+          "fileName": "block-color.dxf",
+          "layerCount": 0
+        },
+        "canvasFound": true,
+        "canvasWidth": 1264,
+        "canvasHeight": 649
+      },
+      "screenshot": "F:\\EW DWG View\\evidence\\P0.1-VERIFY\\screenshots\\block-color.png"
+    },
+    {
+      "file": "sheet_0.dxf",
+      "sizeBytes": 2212649,
+      "durationMs": 283.18,
+      "status": "PASS",
+      "drawingInfo": {
+        "info": {
+          "hasDocument": true,
+          "title": "sheet_0.dxf",
+          "fileName": "sheet_0.dxf",
+          "layerCount": 0
+        },
+        "canvasFound": true,
+        "canvasWidth": 1264,
+        "canvasHeight": 649
+      },
+      "screenshot": "F:\\EW DWG View\\evidence\\P0.1-VERIFY\\screenshots\\sheet_0.png"
+    }
+  ]
+}

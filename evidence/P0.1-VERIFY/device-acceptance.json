@@ -1,0 +1,29 @@
+{
+  "gate": "Gate E — Target Device Acceptance",
+  "status": "BLOCKED — DEVICE NOT AVAILABLE",
+  "timestamp": "2026-11-05T11:52:00+07:00",
+  "reason": "No physical Android device connected via ADB at tcp:5037 during automated verification run.",
+  "targetDeviceProfile": {
+    "targetBrand": "OPPO",
+    "apkPath": "release/debug/com.eurowindow.cadviewer-v1.0-debug.apk",
+    "apkSha256": "6B7302C0ABEA0ADBAC1F95B7F68EEEA1ED67600099DC0B3964F8169AFB12A3EC",
+    "packageId": "com.eurowindow.cadviewer",
+    "versionName": "1.0",
+    "versionCode": 1,
+    "minSdk": 26,
+    "targetSdk": 34
+  },
+  "adbQuery": {
+    "command": "adb devices -l",
+    "output": "List of devices attached (empty)"
+  },
+  "deviceTestingChecklist": [
+    { "item": "APK installation via adb install", "status": "PENDING_PHYSICAL_DEVICE" },
+    { "item": "App launch cold start duration", "status": "PENDING_PHYSICAL_DEVICE" },
+    { "item": "First DXF file open latency", "status": "PENDING_PHYSICAL_DEVICE" },
+    { "item": "Touch gestures: pinch-to-zoom, pan, fit-to-screen", "status": "PENDING_PHYSICAL_DEVICE" },
+    { "item": "App backgrounding & resume (lifecycle test)", "status": "PENDING_PHYSICAL_DEVICE" },
+    { "item": "Drawing close & reopen cycle", "status": "PENDING_PHYSICAL_DEVICE" }
+  ],
+  "remediation": "Connect the physical OPPO smartphone with USB debugging enabled, then execute `adb install -r release/debug/com.eurowindow.cadviewer-v1.0-debug.apk` to record actual live device measurements."
+}

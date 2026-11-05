@@ -1,0 +1,118 @@
+{
+  "passedTests": 14,
+  "totalTests": 14,
+  "results": [
+    {
+      "id": "EW01",
+      "fileName": "aci7-bylayer-background.dxf",
+      "status": "PASS",
+      "sha256_before": "571ac648a9354c1fbddd4a518ee50c2a92b7661b5c681c89a500fcbd3da50f12",
+      "sha256_after": "571ac648a9354c1fbddd4a518ee50c2a92b7661b5c681c89a500fcbd3da50f12",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW02",
+      "fileName": "block-color.dxf",
+      "status": "PASS",
+      "sha256_before": "4f9f0a294659133134bbf72304c10bbbf4784e25a805d0222015e88b30a557d2",
+      "sha256_after": "4f9f0a294659133134bbf72304c10bbbf4784e25a805d0222015e88b30a557d2",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW03",
+      "fileName": "empty.dxf",
+      "status": "PASS",
+      "sha256_before": "1c3429b6550fde95476bd954f683fb3bc8c10e2b9464d35b1b203dc50e6e3edd",
+      "sha256_after": "1c3429b6550fde95476bd954f683fb3bc8c10e2b9464d35b1b203dc50e6e3edd",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW04",
+      "fileName": "find-blocks.dxf",
+      "status": "PASS",
+      "sha256_before": "7fd4c9ce78ed8ffe128fd7a35af99af3fda2085fc803b2b369e9c866e098a0dc",
+      "sha256_after": "7fd4c9ce78ed8ffe128fd7a35af99af3fda2085fc803b2b369e9c866e098a0dc",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW05",
+      "fileName": "find-layouts.dxf",
+      "status": "PASS",
+      "sha256_before": "bd8c9af9d48c690670e91cabc10518c5e40d42d3abdc6048fc0688cdc4e3616a",
+      "sha256_after": "bd8c9af9d48c690670e91cabc10518c5e40d42d3abdc6048fc0688cdc4e3616a",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW06",
+      "fileName": "invisible-lwpolylines-in-block.dxf",
+      "status": "PASS",
+      "sha256_before": "620ee204e2bedb25f96e01f8f2c53d4010bd3f8f1c13935db5102e20523b4252",
+      "sha256_after": "620ee204e2bedb25f96e01f8f2c53d4010bd3f8f1c13935db5102e20523b4252",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW07",
+      "fileName": "invisible-lwpolylines.dxf",
+      "status": "PASS",
+      "sha256_before": "8e673e10ffe134c037454797c015f5b3a04ac18017bc92da97c556470b248b7c",
+      "sha256_after": "8e673e10ffe134c037454797c015f5b3a04ac18017bc92da97c556470b248b7c",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW08",
+      "fileName": "layer0-aci7-explicit-insert.dxf",
+      "status": "PASS",
+      "sha256_before": "ab771d26c4f4500385b00b72a582b93cdb62f72abc9388011fecf2b1589f8068",
+      "sha256_after": "ab771d26c4f4500385b00b72a582b93cdb62f72abc9388011fecf2b1589f8068",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW09",
+      "fileName": "minimal-line.dxf",
+      "status": "PASS",
+      "sha256_before": "da82faaa9c9684e014cae8942389eb7a515bf2defdae9d0e35274ed5b51af8fe",
+      "sha256_after": "da82faaa9c9684e014cae8942389eb7a515bf2defdae9d0e35274ed5b51af8fe",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW10",
+      "fileName": "nested-insert-layers.dxf",
+      "status": "PASS",
+      "sha256_before": "9f1db62951bbf1c543ae3d6801b679e3a4d4abc31b18d7e52295d4f9c3f41c9c",
+      "sha256_after": "9f1db62951bbf1c543ae3d6801b679e3a4d4abc31b18d7e52295d4f9c3f41c9c",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW11",
+      "fileName": "shape-entity.dxf",
+      "status": "PASS",
+      "sha256_before": "078fb3667346ae36167d70995c0d1bc5a27b7fb25a1eb550226144a62b632f11",
+      "sha256_after": "078fb3667346ae36167d70995c0d1bc5a27b7fb25a1eb550226144a62b632f11",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW12",
+      "fileName": "sheet_0.dxf",
+      "status": "PASS",
+      "sha256_before": "a7c21580e12ca39ca65b44501221e1c1073b30bc312a4f5608c4121bc66dde64",
+      "sha256_after": "a7c21580e12ca39ca65b44501221e1c1073b30bc312a4f5608c4121bc66dde64",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW13",
+      "fileName": "visible-lwpolylines-in-block.dxf",
+      "status": "PASS",
+      "sha256_before": "a8929437fa50b0cf3bc7efcbaef74b82c4a3752099dcb3c7469b39fc9f2265bd",
+      "sha256_after": "a8929437fa50b0cf3bc7efcbaef74b82c4a3752099dcb3c7469b39fc9f2265bd",
+      "bytes_identical": true
+    },
+    {
+      "id": "EW14",
+      "fileName": "visible-lwpolylines.dxf",
+      "status": "PASS",
+      "sha256_before": "6d2c20c3b389e0d2a3332171de7e2fd4b57ef56ebba7f6f57c7aec6fd58b0ce6",
+      "sha256_after": "6d2c20c3b389e0d2a3332171de7e2fd4b57ef56ebba7f6f57c7aec6fd58b0ce6",
+      "bytes_identical": true
+    }
+  ]
+}

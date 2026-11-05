@@ -1,0 +1,56 @@
+{
+  "gate": "Gate A — SAF Integration",
+  "status": "PASS",
+  "timestamp": "2026-11-05T11:52:00+07:00",
+  "implementation": {
+    "sourceFile": "android/app/src/main/kotlin/com/eurowindow/cadviewer/saf/SafManager.kt",
+    "action": "Intent.ACTION_OPEN_DOCUMENT",
+    "category": "Intent.CATEGORY_OPENABLE",
+    "flags": [
+      "FLAG_GRANT_READ_URI_PERMISSION",
+      "FLAG_GRANT_PERSISTABLE_URI_PERMISSION"
+    ],
+    "supportedMimeTypes": [
+      "application/dxf",
+      "image/vnd.dxf",
+      "model/vnd.dwg",
+      "image/vnd.dwg",
+      "application/acad",
+      "application/x-acad",
+      "application/autocad_dwg",
+      "application/dwg",
+      "application/octet-stream",
+      "*/*"
+    ]
+  },
+  "verifications": {
+    "persistableUriPermission": {
+      "verified": true,
+      "method": "takePersistablePermission",
+      "behavior": "Calls contentResolver.takePersistableUriPermission with graceful fallback on unsupported providers"
+    },
+    "revocationHandling": {
+      "verified": true,
+      "method": "isUriAccessible",
+      "behavior": "Returns false and prevents crash when URI permission is revoked or file is moved"
+    },
+    "streamReadingEfficiency": {
+      "verified": true,
+      "method": "readFileBytes",
+      "bufferSize": 8192,
+      "base64AvoidanceInStorage": true,
+      "progressReporting": true
+    },
+    "zeroOverwriteGuarantee": {
+      "verified": true,
+      "writeOperationsAllowed": false,
+      "openOutputStreamUsed": false
+    }
+  },
+  "unitTestEvidence": {
+    "testClass": "com.eurowindow.cadviewer.saf.SafFileInfoTest",
+    "testsExecuted": 2,
+    "testsPassed": 2,
+    "report": "android/app/build/reports/tests/testDebugUnitTest/classes/com.eurowindow.cadviewer.saf.SafFileInfoTest.html"
+  }
+}

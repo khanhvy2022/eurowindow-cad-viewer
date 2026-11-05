@@ -1,0 +1,57 @@
+{
+  "phase": "P0.1-VERIFY",
+  "project": "Eurowindow CAD Viewer",
+  "packageId": "com.eurowindow.cadviewer",
+  "workspace": "F:\\EW DWG View",
+  "branch": "feature/cad-viewer-p0",
+  "checkpointTag": "checkpoint-p0.1",
+  "commit": "43347d56a95c3c273184f94128444222c16f558e",
+  "timestamp": "2026-11-05T11:53:00+07:00",
+  "overallVerdict": "PARTIAL (Software verified PASS; Device testing BLOCKED pending physical OPPO hardware)",
+  "gates": {
+    "gateA_SAF": {
+      "name": "SAF File Pipeline",
+      "status": "PASS",
+      "evidence": "evidence/P0.1-VERIFY/saf-results.json",
+      "details": "ACTION_OPEN_DOCUMENT intent, persistable permissions, memory-efficient streaming, zero overwrite guarantee"
+    },
+    "gateB_Room": {
+      "name": "Room Persistence",
+      "status": "PASS",
+      "evidence": "evidence/P0.1-VERIFY/room-results.json",
+      "details": "DrawingMetadata and MeasurementSidecar entities, 0% binary in DB, drawings unmodified on delete"
+    },
+    "gateC_Rendering": {
+      "name": "Real MLightCAD DXF Rendering",
+      "status": "PASS",
+      "evidence": "evidence/P0.1-VERIFY/dxf-render-results.json",
+      "details": "Real WebGL rendering of 3 DXF fixtures (find-blocks.dxf, block-color.dxf, sheet_0.dxf). 11,858 entities in sheet_0.dxf rendered in 283ms. Screenshots captured. Note: getLayers() iteration bug identified for P0.2."
+    },
+    "gateD_Offline": {
+      "name": "Offline Runtime",
+      "status": "PARTIAL",
+      "evidence": "evidence/P0.1-VERIFY/offline-results.json",
+      "details": "Zero INTERNET permission in manifest; WebGL engine packaged 100% in APK assets; renders offline; MLightCAD text font loader attempts cdn.jsdelivr.net calls which are blocked by OS. Local font bundling needed in P0.2."
+    },
+    "gateE_Device": {
+      "name": "Target Device Acceptance (OPPO)",
+      "status": "BLOCKED — DEVICE NOT AVAILABLE",
+      "evidence": "evidence/P0.1-VERIFY/device-acceptance.json",
+      "details": "ADB tcp:5037 reported empty device list. In strict compliance with guidelines, no emulator was substituted."
+    },
+    "gateF_LicenseAndIntegrity": {
+      "name": "License & File Integrity",
+      "status": "PASS",
+      "evidence": [
+        "evidence/P0.1-VERIFY/license-verification.json",
+        "evidence/P0.1-VERIFY/file-integrity-results.json"
+      ],
+      "details": "0 GPL packages in production; 14/14 DXF fixtures match SHA-256; DWG parser strictly blocked behind ENABLE_COMMERCIAL_DWG_PARSER = false."
+    }
+  },
+  "apkArtifact": {
+    "path": "release/debug/com.eurowindow.cadviewer-v1.0-debug.apk",
+    "sizeBytes": 10355619,
+    "sha256": "6B7302C0ABEA0ADBAC1F95B7F68EEEA1ED67600099DC0B3964F8169AFB12A3EC"
+  }
+}

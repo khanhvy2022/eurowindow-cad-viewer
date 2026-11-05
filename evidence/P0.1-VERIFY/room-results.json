@@ -1,0 +1,50 @@
+{
+  "gate": "Gate B — Room Persistence",
+  "status": "PASS",
+  "timestamp": "2026-11-05T11:52:00+07:00",
+  "database": {
+    "name": "eurowindow_cad_viewer.db",
+    "version": 1,
+    "class": "com.eurowindow.cadviewer.data.database.CadDatabase",
+    "entities": [
+      {
+        "table": "drawing_metadata",
+        "primaryKey": "uriString",
+        "columns": [
+          "uriString (TEXT)",
+          "displayName (TEXT)",
+          "extension (TEXT)",
+          "fileSize (INTEGER)",
+          "lastOpenedTimestamp (INTEGER)",
+          "isFavorite (INTEGER)",
+          "thumbnailPath (TEXT NULLABLE)"
+        ]
+      },
+      {
+        "table": "measurement_sidecars",
+        "primaryKey": "id (autoGenerate = true)",
+        "columns": [
+          "id (INTEGER)",
+          "documentUriString (TEXT)",
+          "measurementType (TEXT)",
+          "measurementValue (REAL)",
+          "unit (TEXT)",
+          "pointsJson (TEXT)",
+          "createdAtTimestamp (INTEGER)"
+        ]
+      }
+    ]
+  },
+  "operations": {
+    "recentDrawingsFlow": "getAllRecentDrawings() ORDER BY lastOpenedTimestamp DESC",
+    "favoritesFlow": "getFavoriteDrawings() WHERE isFavorite = 1",
+    "favoriteToggle": "setFavorite(uriString, isFavorite)",
+    "metadataDeletion": "deleteByUri(uriString)",
+    "sidecarIsolation": "Separate measurement_sidecars table avoids modifying original CAD geometry"
+  },
+  "safetyAudit": {
+    "drawingBinaryStoredInDb": false,
+    "fileDeletionOnMetadataDelete": false,
+    "immutabilityGuarantee": "Deleting a drawing record removes row from SQLite without touching content:// URI"
+  }
+}

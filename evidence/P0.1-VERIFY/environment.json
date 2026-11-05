@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-11-05T11:42:00+07:00",
+  "workspace": "F:\\EW DWG View",
+  "packageId": "com.eurowindow.cadviewer",
+  "branch": "feature/cad-viewer-p0",
+  "commit": "43347d56a95c3c273184f94128444222c16f558e",
+  "tag": "checkpoint-p0.1",
+  "gitStatus": "clean",
+  "apk": {
+    "path": "release/debug/com.eurowindow.cadviewer-v1.0-debug.apk",
+    "sizeBytes": 10355619,
+    "sha256": "6B7302C0ABEA0ADBAC1F95B7F68EEEA1ED67600099DC0B3964F8169AFB12A3EC",
+    "exists": true
+  },
+  "java": {
+    "version": "17.0.12",
+    "vendor": "Microsoft",
+    "home": "F:\\EW DWG View\\tools\\jdk-17\\jdk-17.0.12+7"
+  },
+  "androidSdk": {
+    "path": "C:\\Users\\ThangTran\\AppData\\Local\\Android\\Sdk",
+    "compileSdk": 34,
+    "targetSdk": 34,
+    "minSdk": 26
+  }
+}
