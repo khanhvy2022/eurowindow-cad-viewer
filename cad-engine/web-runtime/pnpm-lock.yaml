@@ -14,6 +14,9 @@ importers:
       '@mlightcad/data-model':
         specifier: 1.15.22
         version: 1.15.22
+      '@mlightcad/libredwg-converter':
+        specifier: 3.15.22
+        version: 3.15.22(@mlightcad/data-model@1.15.22)
       '@mlightcad/mtext-parser':
         specifier: 1.5.7
         version: 1.5.7
@@ -228,6 +231,15 @@ packages:
     peerDependencies:
       '@mlightcad/common': 1.15.22
       '@mlightcad/geometry-engine': 3.15.22
+
+  '@mlightcad/libredwg-converter@3.15.22':
+    resolution: {integrity: sha512-NDNYPA0hD8yGDzYKHR7Be0mK4eZmBWI/IJUmVPh3fXpu31ulnef2i9gDclPtFXI9cpBbWQjZyI2rnkJN8fx7jQ==}
+    peerDependencies:
+      '@mlightcad/data-model': 1.15.22
+
+  '@mlightcad/libredwg-web@0.8.4':
+    resolution: {integrity: sha512-IYCo39MtZswuNZhfXG/VpZ8ZunPM4n6Kh/7YZlOi9KbKnTMT58jsycHoQ+2yL7F+G5OyR2GU6cF1TsVn4WHWjQ==}
+    engines: {node: '>=20'}
 
   '@mlightcad/mtext-parser@1.5.7':
     resolution: {integrity: sha512-CoXa04hITe1WA8F7bg1na5wSsbTmAbjOt9CQNHbjT48tFyR4hkqcXKX0nln3Szwxm9v7IsTK6vNFvtVd5FHjzg==}
@@ -643,6 +655,13 @@ snapshots:
     dependencies:
       '@mlightcad/common': 1.15.22
       '@mlightcad/geometry-engine': 3.15.22(@mlightcad/common@1.15.22)
+
+  '@mlightcad/libredwg-converter@3.15.22(@mlightcad/data-model@1.15.22)':
+    dependencies:
+      '@mlightcad/data-model': 1.15.22
+      '@mlightcad/libredwg-web': 0.8.4
+
+  '@mlightcad/libredwg-web@0.8.4': {}
 
   '@mlightcad/mtext-parser@1.5.7': {}
 

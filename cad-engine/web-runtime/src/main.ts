@@ -30,6 +30,7 @@ import {
   type AcApOpenDatabaseOptions
 } from '@mlightcad/cad-simple-viewer';
 import { AcDbDatabaseConverterManager, AcDbFileType } from '@mlightcad/data-model';
+import { AcDbLibreDwgConverter } from '@mlightcad/libredwg-converter';
 
 interface AndroidBridgeInterface {
   onViewerReady?: () => void;
@@ -42,6 +43,7 @@ interface AndroidBridgeInterface {
 declare global {
   interface Window {
     AndroidBridge?: AndroidBridgeInterface;
+    loadCurrentDrawing?: (fileName: string) => Promise<boolean>;
     EurowindowBridge: {
       initViewer: (containerId: string) => Promise<boolean>;
       loadDrawingFromBase64: (fileName: string, base64Data: string) => Promise<boolean>;
@@ -51,14 +53,11 @@ declare global {
       setLayerVisibility: (layerName: string, visible: boolean) => void;
       closeDrawing: () => Promise<void>;
       getDrawingInfo: () => Record<string, unknown>;
+      startMeasureDistance: () => void;
+      startMeasureArea: () => void;
+      clearMeasurements: () => void;
     };
   }
-}
-
-// Ensure DWG support is strictly disabled by default (Phase P0.1 Policy)
-const ENABLE_COMMERCIAL_DWG_PARSER = false;
-if (ENABLE_COMMERCIAL_DWG_PARSER) {
-  console.log('[Eurowindow CAD] Commercial DWG Parser registration point (disabled)');
 }
 
 let isInitialized = false;
@@ -72,17 +71,31 @@ async function initViewer(containerId: string): Promise<boolean> {
 
   try {
     const localBaseUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/cad-data';
+    const dwgParserUrl = './workers/libredwg-parser-worker.js';
+
+    // Register DWG converter for direct offline DWG loading
+    const dwgConverter = new AcDbLibreDwgConverter({
+      convertByEntityType: false,
+      useWorker: true,
+      parserWorkerUrl: dwgParserUrl
+    });
+    AcDbDatabaseConverterManager.instance.register(AcDbFileType.DWG, dwgConverter);
+
     AcApDocManager.createInstance({
       container,
       autoResize: true,
       baseUrl: localBaseUrl,
-      useMainThreadDraw: true, // Main-thread drawing uses minimal memory on mobile devices
+      useMainThreadDraw: true,
       disableExport: true,
       openDocumentDefaults: () => ({
         mode: AcEdOpenMode.Read,
         drawNoPlotLayers: false,
         openViewMode: AcApOpenViewMode.Extents
-      })
+      }),
+      webworkerFileUrls: {
+        mtextRender: './workers/mtext-renderer-worker.js',
+        dwgParser: dwgParserUrl
+      }
     });
 
     AcApDocManager.instance.events.documentActivated.addEventListener(args => {
@@ -92,7 +105,7 @@ async function initViewer(containerId: string): Promise<boolean> {
     });
 
     isInitialized = true;
-    console.log('[Eurowindow CAD] Viewer initialized successfully.');
+    console.log('[Eurowindow CAD] Viewer initialized successfully with DWG + DXF support.');
     
     hideLoadingOverlay();
 
@@ -137,18 +150,7 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
     await initViewer('cad-container');
   }
 
-  showLoadingOverlay(`Đang tải bản vẽ: ${fileName}...`);
-
-  const ext = fileName.toLowerCase().split('.').pop();
-  if (ext === 'dwg') {
-    const err = 'Định dạng DWG hiện đang bị khóa trong phiên bản P0.1 (Yêu cầu cấp phép bản quyền parser thương mại). Vui lòng dùng định dạng DXF.';
-    console.warn(err);
-    hideLoadingOverlay();
-    if (window.AndroidBridge && typeof window.AndroidBridge.onDocumentLoadError === 'function') {
-      window.AndroidBridge.onDocumentLoadError(err);
-    }
-    return false;
-  }
+  showLoadingOverlay(`Đang nạp bản vẽ: ${fileName}...`);
 
   const options: AcApOpenDatabaseOptions = {
     mode: AcEdOpenMode.Read,
@@ -159,7 +161,7 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
   try {
     const success = await AcApDocManager.instance.openDocument(fileName, buffer, options);
     if (!success) {
-      throw new Error(`Failed to parse drawing: ${fileName}`);
+      throw new Error(`Không thể giải mã dữ liệu bản vẽ: ${fileName}`);
     }
     return true;
   } catch (err: unknown) {
@@ -241,11 +243,13 @@ async function closeDrawing(): Promise<void> {
 function getDrawingInfo(): Record<string, unknown> {
   const doc = AcApDocManager.instance.curDocument;
   if (!doc) return { hasDocument: false };
+  const layers = getLayers();
   return {
     hasDocument: true,
     title: doc.docTitle,
     fileName: doc.fileName,
-    layerCount: getLayers().length
+    layerCount: layers.length,
+    layers: layers
   };
 }
 
@@ -256,6 +260,25 @@ function sendDocumentLoaded() {
   }
 }
 
+// Global stream loader directly callable from Android
+window.loadCurrentDrawing = async function(fileName: string): Promise<boolean> {
+  try {
+    showLoadingOverlay(`Đang nạp bản vẽ: ${fileName}...`);
+    const res = await fetch('https://cad.eurowindow.local/current-drawing-stream');
+    if (!res.ok) throw new Error(`HTTP ${res.status} khi tải dữ liệu bản vẽ`);
+    const buffer = await res.arrayBuffer();
+    return await loadDrawingFromArrayBuffer(fileName, buffer);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[Eurowindow CAD] Stream load error:', msg);
+    hideLoadingOverlay();
+    if (window.AndroidBridge && typeof window.AndroidBridge.onDocumentLoadError === 'function') {
+      window.AndroidBridge.onDocumentLoadError(msg);
+    }
+    return false;
+  }
+};
+
 // Expose EurowindowBridge globally to window
 window.EurowindowBridge = {
   initViewer,
@@ -265,7 +288,28 @@ window.EurowindowBridge = {
   getLayers,
   setLayerVisibility,
   closeDrawing,
-  getDrawingInfo
+  getDrawingInfo,
+  startMeasureDistance: () => {
+    try {
+      AcApDocManager.instance.sendStringToExecute('measuredistance');
+    } catch (e) {
+      console.warn('[Eurowindow CAD] startMeasureDistance error:', e);
+    }
+  },
+  startMeasureArea: () => {
+    try {
+      AcApDocManager.instance.sendStringToExecute('measurearea');
+    } catch (e) {
+      console.warn('[Eurowindow CAD] startMeasureArea error:', e);
+    }
+  },
+  clearMeasurements: () => {
+    try {
+      AcApDocManager.instance.sendStringToExecute('clearmeasurements');
+    } catch (e) {
+      console.warn('[Eurowindow CAD] clearMeasurements error:', e);
+    }
+  }
 };
 
 // Auto-initialize when DOM is ready

@@ -61,34 +61,7 @@
       letter-spacing: 0.5px;
     }
   </style>
-  <script type="module" crossorigin src="./viewer-DQ6t1ZEI.js"></script>
-  <script>
-    window.loadCurrentDrawing = async function(fileName) {
-      try {
-        const overlay = document.getElementById('loading-overlay');
-        const text = document.getElementById('status-text');
-        if (overlay) overlay.style.display = 'flex';
-        if (text) text.textContent = 'Đang tải bản vẽ: ' + fileName + '...';
-
-        const res = await fetch('https://cad.eurowindow.local/current-drawing-stream');
-        if (!res.ok) throw new Error('HTTP ' + res.status + ' loading drawing');
-        const buffer = await res.arrayBuffer();
-
-        if (window.EurowindowBridge && typeof window.EurowindowBridge.loadDrawingFromArrayBuffer === 'function') {
-          return await window.EurowindowBridge.loadDrawingFromArrayBuffer(fileName, buffer);
-        } else {
-          throw new Error('EurowindowBridge not ready');
-        }
-      } catch (err) {
-        console.error('[Eurowindow CAD] Stream load error:', err);
-        const overlay = document.getElementById('loading-overlay');
-        if (overlay) overlay.style.display = 'none';
-        if (window.AndroidBridge && typeof window.AndroidBridge.onDocumentLoadError === 'function') {
-          window.AndroidBridge.onDocumentLoadError(err.message || String(err));
-        }
-      }
-    };
-  </script>
+  <script type="module" crossorigin src="./viewer-B3WhVj2j.js"></script>
 </head>
 <body>
   <div id="cad-container"></div>

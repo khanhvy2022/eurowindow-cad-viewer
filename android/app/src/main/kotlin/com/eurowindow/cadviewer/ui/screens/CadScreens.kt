@@ -409,7 +409,7 @@ fun DrawingsScreen(
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "• Phiên bản P0.1 hoạt động 100% Offline với tệp chuẩn DXF (.dxf).\n• Với bản vẽ AutoCAD DWG (.dwg), hãy dùng tính năng 'Save As' -> 'AutoCAD 2018 DXF (*.dxf)' trên máy tính trước khi chuyển vào điện thoại để xem tức thì.",
+                        text = "• Hỗ trợ xem 100% Offline cả 2 định dạng AutoCAD DWG (.dwg) & DXF (.dxf).\n• Tích hợp thanh công cụ đo đạc khoảng cách, diện tích và quản lý lớp layer tương tự DWG FastView.",
                         color = Color(0xFFB0BEC5),
                         fontSize = 11.sp,
                         lineHeight = 16.sp
@@ -450,7 +450,7 @@ fun SettingsScreen() {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(text = "Động cơ hiển thị: MLightCAD WebGL 2.0 (100% Offline)", color = Color(0xFFCCCCCC), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(text = "Trạng thái DWG Parser: Khóa theo chính sách P0.1 (Yêu cầu cấp phép thương mại)", color = Color(0xFFFFA726), fontSize = 13.sp)
+                Text(text = "Trạng thái DWG Parser: Đã kích hoạt (Hỗ trợ DWG & DXF 2D/3D)", color = Color(0xFF81C784), fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(text = "Giấy phép bản phát hành: MIT / Apache-2.0 / 0BSD (Clean License)", color = Color(0xFF81C784), fontSize = 13.sp)
             }

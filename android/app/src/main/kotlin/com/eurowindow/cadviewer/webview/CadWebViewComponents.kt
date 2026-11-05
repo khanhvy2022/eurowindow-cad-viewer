@@ -106,12 +106,52 @@ class CadWebViewClient(
             }
         }
 
+        // 3. Intercept WebAssembly files (.wasm)
+        if (url.host == "cad.eurowindow.local" && path.endsWith(".wasm")) {
+            val assetPath = when {
+                path.startsWith("/assets/") -> path.removePrefix("/assets/")
+                path.startsWith("/workers/") -> "web-runtime$path"
+                else -> "web-runtime/workers/" + path.substringAfterLast('/')
+            }
+            return try {
+                val stream = context.assets.open(assetPath)
+                WebResourceResponse(
+                    "application/wasm",
+                    null,
+                    200,
+                    "OK",
+                    mapOf("Access-Control-Allow-Origin" to "*"),
+                    stream
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        // 4. Intercept worker scripts (/workers/...)
+        if (url.host == "cad.eurowindow.local" && (path.startsWith("/workers/") || path.contains("/workers/"))) {
+            val workerFile = path.substringAfterLast('/')
+            val assetPath = "web-runtime/workers/$workerFile"
+            return try {
+                val stream = context.assets.open(assetPath)
+                WebResourceResponse(
+                    "application/javascript",
+                    "UTF-8",
+                    200,
+                    "OK",
+                    mapOf("Access-Control-Allow-Origin" to "*"),
+                    stream
+                )
+            } catch (e: Exception) {
+                null
+            }
+        }
+
         return assetLoader.shouldInterceptRequest(url)
     }
 
     override fun onPageFinished(view: WebView, url: String) {
         super.onPageFinished(view, url)
-        // Ensure viewer is initialized even if DOMContentLoaded was fired before module script attached
         view.evaluateJavascript(
             "if (window.EurowindowBridge && typeof window.EurowindowBridge.initViewer === 'function') { window.EurowindowBridge.initViewer('cad-container'); }",
             null

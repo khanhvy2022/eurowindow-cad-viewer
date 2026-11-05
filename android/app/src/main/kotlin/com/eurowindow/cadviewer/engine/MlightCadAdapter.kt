@@ -1,6 +1,5 @@
 package com.eurowindow.cadviewer.engine
 
-import java.util.Base64
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
 import org.json.JSONArray
@@ -11,13 +10,14 @@ class MlightCadAdapter(
 ) : CadEngine {
 
     companion object {
-        const val ENABLE_COMMERCIAL_DWG_PARSER = false
-        private const val JS_TIMEOUT_MS = 25000L
+        const val ENABLE_COMMERCIAL_DWG_PARSER = true
+        private const val JS_TIMEOUT_MS = 60000L
     }
 
     private var isEngineReady = false
     private var currentDrawingInfo: DrawingInfo? = null
     private var pendingLoadDeferred: CompletableDeferred<DrawingInfo>? = null
+    private var cachedLayers: List<CadLayer> = emptyList()
 
     @Volatile
     var currentDrawingBytes: ByteArray? = null
@@ -30,10 +30,6 @@ class MlightCadAdapter(
 
     override suspend fun openDrawing(fileName: String, bytes: ByteArray): Result<DrawingInfo> {
         val ext = fileName.substringAfterLast('.', "").lowercase()
-        if (ext == "dwg" && !ENABLE_COMMERCIAL_DWG_PARSER) {
-            return Result.failure(CadEngineException.DwgFeatureDisabledException())
-        }
-
         if (ext != "dxf" && ext != "dwg") {
             return Result.failure(CadEngineException.UnsupportedFormatException(ext))
         }
@@ -42,9 +38,7 @@ class MlightCadAdapter(
         pendingLoadDeferred = deferred
         currentDrawingBytes = bytes
 
-        // We trigger native stream loading via https://cad.eurowindow.local/current-drawing-stream
-        // which avoids Android WebView IPC Binder 1MB transaction limits on multi-megabyte CAD files,
-        // while maintaining loadDrawingFromBase64 fallback signature.
+        // Trigger native stream loading via https://cad.eurowindow.local/current-drawing-stream
         val script = "if (window.loadCurrentDrawing) { window.loadCurrentDrawing('$fileName'); } else if (window.EurowindowBridge && window.EurowindowBridge.loadDrawingFromArrayBuffer) { fetch('https://cad.eurowindow.local/current-drawing-stream').then(r => r.arrayBuffer()).then(b => window.EurowindowBridge.loadDrawingFromArrayBuffer('$fileName', b)); } else { window.EurowindowBridge.loadDrawingFromBase64('$fileName', ''); }"
         jsExecutor(script)
 
@@ -55,31 +49,47 @@ class MlightCadAdapter(
             currentDrawingInfo = info
             Result.success(info)
         } catch (e: Exception) {
-            Result.failure(CadEngineException.ParseFailureException(e.message ?: "Timeout loading drawing"))
+            Result.failure(CadEngineException.ParseFailureException(e.message ?: "Hết thời gian nạp bản vẽ"))
         } finally {
             pendingLoadDeferred = null
         }
     }
 
     override suspend fun closeDrawing(): Result<Unit> {
-        jsExecutor("window.EurowindowBridge.closeDrawing();")
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.closeDrawing) window.EurowindowBridge.closeDrawing();")
         currentDrawingInfo = null
         currentDrawingBytes = null
+        cachedLayers = emptyList()
         return Result.success(Unit)
     }
 
     override suspend fun getLayers(): List<CadLayer> {
-        return emptyList()
+        return cachedLayers
     }
 
     override suspend fun setLayerVisibility(layerName: String, visible: Boolean): Result<Unit> {
-        jsExecutor("window.EurowindowBridge.setLayerVisibility('$layerName', $visible);")
+        cachedLayers = cachedLayers.map {
+            if (it.name == layerName) it.copy(isVisible = visible) else it
+        }
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.setLayerVisibility) window.EurowindowBridge.setLayerVisibility('$layerName', $visible);")
         return Result.success(Unit)
     }
 
     override suspend fun zoomToFit(): Result<Unit> {
-        jsExecutor("window.EurowindowBridge.zoomToFit();")
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.zoomToFit) window.EurowindowBridge.zoomToFit();")
         return Result.success(Unit)
+    }
+
+    fun startMeasureDistance() {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.startMeasureDistance) window.EurowindowBridge.startMeasureDistance();")
+    }
+
+    fun startMeasureArea() {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.startMeasureArea) window.EurowindowBridge.startMeasureArea();")
+    }
+
+    fun clearMeasurements() {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.clearMeasurements) window.EurowindowBridge.clearMeasurements();")
     }
 
     override suspend fun getDrawingInfo(): DrawingInfo? {
@@ -90,11 +100,29 @@ class MlightCadAdapter(
     fun onDocumentLoadedFromJs(jsonStr: String) {
         try {
             val json = JSONObject(jsonStr)
+            val fileName = json.optString("fileName", "drawing.dwg")
+            val layersArray = json.optJSONArray("layers")
+            val list = mutableListOf<CadLayer>()
+            if (layersArray != null) {
+                for (i in 0 until layersArray.length()) {
+                    val lObj = layersArray.getJSONObject(i)
+                    list.add(
+                        CadLayer(
+                            id = lObj.optString("id", "$i"),
+                            name = lObj.optString("name", "Layer $i"),
+                            isVisible = !lObj.optBoolean("isOff", false),
+                            color = lObj.optInt("color", 7)
+                        )
+                    )
+                }
+            }
+            cachedLayers = list
+
             val info = DrawingInfo(
-                fileName = json.optString("fileName", "drawing.dxf"),
-                fileExtension = json.optString("fileName", "drawing.dxf").substringAfterLast('.', "dxf"),
-                title = json.optString("title", "Untitled Drawing"),
-                layerCount = json.optInt("layerCount", 0)
+                fileName = fileName,
+                fileExtension = fileName.substringAfterLast('.', "dwg"),
+                title = json.optString("title", fileName),
+                layerCount = json.optInt("layerCount", list.size)
             )
             currentDrawingInfo = info
             pendingLoadDeferred?.complete(info)
