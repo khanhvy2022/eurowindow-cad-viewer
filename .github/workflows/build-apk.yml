@@ -49,16 +49,16 @@ jobs:
 
       - name: Rename and Prepare APKs
         run: |
-          cp android/app/build/outputs/apk/release/app-release.apk com.eurowindow.cadviewer-v1.0.1-release.apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk com.eurowindow.cadviewer-v1.0-debug.apk
+          cp android/app/build/outputs/apk/release/app-release.apk com.eurowindow.cadviewer-v1.0.3-release.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk com.eurowindow.cadviewer-debug.apk
 
       - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: eurowindow-cadviewer-apks
           path: |
-            com.eurowindow.cadviewer-v1.0.1-release.apk
-            com.eurowindow.cadviewer-v1.0-debug.apk
+            com.eurowindow.cadviewer-v1.0.3-release.apk
+            com.eurowindow.cadviewer-debug.apk
           if-no-files-found: error
 
       - name: Create or Update GitHub Release (on tag)
@@ -66,8 +66,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            com.eurowindow.cadviewer-v1.0.1-release.apk
-            com.eurowindow.cadviewer-v1.0-debug.apk
+            com.eurowindow.cadviewer-v1.0.3-release.apk
+            com.eurowindow.cadviewer-debug.apk
           name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
