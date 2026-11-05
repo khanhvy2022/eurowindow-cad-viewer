@@ -12,13 +12,28 @@ android {
     applicationId = "com.eurowindow.cadviewer"
     minSdk = 26
     targetSdk = 34
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = 2
+    versionName = "1.0.1"
+  }
+
+  signingConfigs {
+    create("eurowindowRelease") {
+      storeFile = file("../keystore/eurowindow.keystore")
+      storePassword = "eurowindow123"
+      keyAlias = "eurowindow"
+      keyPassword = "eurowindow123"
+      enableV1Signing = true
+      enableV2Signing = true
+    }
   }
 
   buildTypes {
+    debug {
+      signingConfig = signingConfigs.getByName("eurowindowRelease")
+    }
     release {
       isMinifyEnabled = false
+      signingConfig = signingConfigs.getByName("eurowindowRelease")
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
