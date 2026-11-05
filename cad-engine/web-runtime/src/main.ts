@@ -30,7 +30,8 @@ import {
   type AcApOpenDatabaseOptions
 } from '@mlightcad/cad-simple-viewer';
 import { AcDbDatabaseConverterManager, AcDbFileType } from '@mlightcad/data-model';
-import { AcDbLibreDwgConverter } from '@mlightcad/libredwg-converter';
+import { LibreDwg } from '@mlightcad/libredwg-web';
+import { AcDbLibreDwgMainThreadConverter } from '@mlightcad/libredwg-converter/node';
 
 interface AndroidBridgeInterface {
   onViewerReady?: () => void;
@@ -70,17 +71,30 @@ async function initViewer(containerId: string): Promise<boolean> {
   }
 
   try {
-    const localBaseUrl = (typeof window !== 'undefined' ? window.location.origin : '') + '/cad-data';
-    const dwgParserUrl = './workers/libredwg-parser-worker.js';
+    const origin = (typeof window !== 'undefined' ? window.location.origin : 'https://cad.eurowindow.local');
+    const localBaseUrl = origin + '/cad-data';
+    const wasmDir = `${origin}/assets/web-runtime/workers`;
 
-    // Register DWG converter for direct offline DWG loading
-    const dwgConverter = new AcDbLibreDwgConverter({
-      convertByEntityType: false,
-      useWorker: true,
-      parserWorkerUrl: dwgParserUrl
-    });
+    // 1. Initialize LibreDwg WebAssembly on the main thread
+    console.log('[Eurowindow CAD] Pre-initializing LibreDwg WASM from:', wasmDir);
+    try {
+      await LibreDwg.create(wasmDir);
+      console.log('[Eurowindow CAD] LibreDwg WASM initialized successfully.');
+    } catch (e1) {
+      console.warn('[Eurowindow CAD] Direct WASM init attempt 1:', e1);
+      try {
+        await LibreDwg.create('./workers');
+        console.log('[Eurowindow CAD] LibreDwg WASM initialized via relative path.');
+      } catch (e2) {
+        console.warn('[Eurowindow CAD] Direct WASM init attempt 2:', e2);
+      }
+    }
+
+    // 2. Register main-thread DWG converter (eliminates mobile Web Worker CORS/isolation restrictions)
+    const dwgConverter = new AcDbLibreDwgMainThreadConverter();
     AcDbDatabaseConverterManager.instance.register(AcDbFileType.DWG, dwgConverter);
 
+    // 3. Initialize AcApDocManager
     AcApDocManager.createInstance({
       container,
       autoResize: true,
@@ -93,8 +107,7 @@ async function initViewer(containerId: string): Promise<boolean> {
         openViewMode: AcApOpenViewMode.Extents
       }),
       webworkerFileUrls: {
-        mtextRender: './workers/mtext-renderer-worker.js',
-        dwgParser: dwgParserUrl
+        mtextRender: './workers/mtext-renderer-worker.js'
       }
     });
 
@@ -105,7 +118,7 @@ async function initViewer(containerId: string): Promise<boolean> {
     });
 
     isInitialized = true;
-    console.log('[Eurowindow CAD] Viewer initialized successfully with DWG + DXF support.');
+    console.log('[Eurowindow CAD] Viewer initialized successfully with Direct DWG + DXF support.');
     
     hideLoadingOverlay();
 
@@ -150,7 +163,18 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
     await initViewer('cad-container');
   }
 
-  showLoadingOverlay(`Đang nạp bản vẽ: ${fileName}...`);
+  showLoadingOverlay(`Đang nạp và giải mã bản vẽ: ${fileName}...`);
+
+  const ext = fileName.toLowerCase().split('.').pop();
+  if (ext === 'dwg') {
+    // Ensure WASM instance is ready before parsing DWG
+    try {
+      const origin = (typeof window !== 'undefined' ? window.location.origin : 'https://cad.eurowindow.local');
+      await LibreDwg.create(`${origin}/assets/web-runtime/workers`);
+    } catch (e) {
+      console.warn('[Eurowindow CAD] Pre-parse LibreDwg check:', e);
+    }
+  }
 
   const options: AcApOpenDatabaseOptions = {
     mode: AcEdOpenMode.Read,

@@ -4,9 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.net.Uri
+import android.util.Log
 import android.view.View
+import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
@@ -106,25 +109,28 @@ class CadWebViewClient(
             }
         }
 
-        // 3. Intercept WebAssembly files (.wasm)
+        // 3. Intercept WebAssembly files (.wasm) with proper application/wasm MIME type and CORS
         if (url.host == "cad.eurowindow.local" && path.endsWith(".wasm")) {
-            val assetPath = when {
-                path.startsWith("/assets/") -> path.removePrefix("/assets/")
-                path.startsWith("/workers/") -> "web-runtime$path"
-                else -> "web-runtime/workers/" + path.substringAfterLast('/')
-            }
-            return try {
-                val stream = context.assets.open(assetPath)
-                WebResourceResponse(
-                    "application/wasm",
-                    null,
-                    200,
-                    "OK",
-                    mapOf("Access-Control-Allow-Origin" to "*"),
-                    stream
-                )
-            } catch (e: Exception) {
-                null
+            val fileName = path.substringAfterLast('/')
+            // Try standard asset paths
+            val candidates = listOf(
+                path.removePrefix("/assets/"),
+                "web-runtime/assets/$fileName",
+                "web-runtime/workers/$fileName",
+                "web-runtime$path"
+            )
+            for (candidate in candidates) {
+                try {
+                    val stream = context.assets.open(candidate)
+                    return WebResourceResponse(
+                        "application/wasm",
+                        null,
+                        200,
+                        "OK",
+                        mapOf("Access-Control-Allow-Origin" to "*"),
+                        stream
+                    )
+                } catch (_: Exception) {}
             }
         }
 
@@ -193,12 +199,21 @@ fun configureCadWebView(
             javaScriptEnabled = true
             domStorageEnabled = true
             databaseEnabled = true
-            allowFileAccess = false
-            allowContentAccess = false
+            allowFileAccess = true
+            allowContentAccess = true
             setSupportZoom(false)
             builtInZoomControls = false
             displayZoomControls = false
             cacheMode = WebSettings.LOAD_DEFAULT
+        }
+
+        webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                val msg = consoleMessage?.message() ?: ""
+                val level = consoleMessage?.messageLevel()
+                Log.d("CadWebView", "[$level] $msg (line: ${consoleMessage?.lineNumber()})")
+                return true
+            }
         }
 
         webViewClient = CadWebViewClient(context, adapter, onCrash)

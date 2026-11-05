@@ -49,7 +49,7 @@ jobs:
 
       - name: Rename and Prepare APKs
         run: |
-          cp android/app/build/outputs/apk/release/app-release.apk com.eurowindow.cadviewer-v1.0.4-release.apk
+          cp android/app/build/outputs/apk/release/app-release.apk com.eurowindow.cadviewer-v1.0.5-release.apk
           cp android/app/build/outputs/apk/debug/app-debug.apk com.eurowindow.cadviewer-debug.apk
 
       - name: Upload APK Artifacts
@@ -57,7 +57,7 @@ jobs:
         with:
           name: eurowindow-cadviewer-apks
           path: |
-            com.eurowindow.cadviewer-v1.0.4-release.apk
+            com.eurowindow.cadviewer-v1.0.5-release.apk
             com.eurowindow.cadviewer-debug.apk
           if-no-files-found: error
 
@@ -66,7 +66,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            com.eurowindow.cadviewer-v1.0.4-release.apk
+            com.eurowindow.cadviewer-v1.0.5-release.apk
             com.eurowindow.cadviewer-debug.apk
           name: Release ${{ github.ref_name }}
           draft: false
