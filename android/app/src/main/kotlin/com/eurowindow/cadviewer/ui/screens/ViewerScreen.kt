@@ -53,23 +53,40 @@ fun ViewerScreen(
         val uri = Uri.parse(uriString)
         isLoadingDrawing = true
         coroutineScope.launch {
-            val bytesResult = SafManager.readFileBytes(context, uri)
-            bytesResult.fold(
-                onSuccess = { bytes ->
-                    val openResult = adapter.openDrawing(displayName, bytes)
-                    isLoadingDrawing = false
-                    if (openResult.isSuccess) {
-                        layersList = adapter.getLayers()
-                        adapter.zoomToFit()
+            val openResult = if (uri.scheme == "file") {
+                val path = uri.path ?: uri.schemeSpecificPart
+                val file = java.io.File(path)
+                if (file.exists()) {
+                    adapter.openDrawingFile(displayName, file)
+                } else {
+                    val bytesResult = SafManager.readFileBytes(context, uri)
+                    if (bytesResult.isSuccess) {
+                        adapter.openDrawing(displayName, bytesResult.getOrThrow())
                     } else {
-                        errorMessage = openResult.exceptionOrNull()?.message ?: "Lỗi khi mở bản vẽ"
+                        Result.failure(bytesResult.exceptionOrNull() ?: Exception("Tệp không tồn tại"))
                     }
-                },
-                onFailure = { err ->
-                    isLoadingDrawing = false
-                    errorMessage = "Không thể đọc tệp: ${err.message}"
                 }
-            )
+            } else {
+                val bytesResult = SafManager.readFileBytes(context, uri)
+                if (bytesResult.isSuccess) {
+                    adapter.openDrawing(displayName, bytesResult.getOrThrow())
+                } else {
+                    Result.failure(bytesResult.exceptionOrNull() ?: Exception("Không thể đọc tệp"))
+                }
+            }
+
+            isLoadingDrawing = false
+            if (openResult.isSuccess) {
+                layersList = adapter.getLayers()
+                adapter.zoomToFit()
+            } else {
+                val exMsg = openResult.exceptionOrNull()?.message ?: "Lỗi khi mở bản vẽ"
+                errorMessage = if (exMsg.contains("Permission Denial", ignoreCase = true)) {
+                    "Không thể đọc tệp: Quyền truy cập bị hệ điều hành từ chối. Vui lòng mở lại từ mục 'Bản vẽ'."
+                } else {
+                    exMsg
+                }
+            }
         }
     }
 

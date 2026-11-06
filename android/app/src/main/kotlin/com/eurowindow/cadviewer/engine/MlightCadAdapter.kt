@@ -4,6 +4,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 
 class MlightCadAdapter(
     private val jsExecutor: (String) -> Unit
@@ -11,7 +12,7 @@ class MlightCadAdapter(
 
     companion object {
         const val ENABLE_COMMERCIAL_DWG_PARSER = true
-        private const val JS_TIMEOUT_MS = 120000L
+        private const val JS_TIMEOUT_MS = 300000L // 5 minutes for large CAD drawings
     }
 
     private var isEngineReady = false
@@ -23,9 +24,41 @@ class MlightCadAdapter(
     var currentDrawingBytes: ByteArray? = null
         private set
 
+    @Volatile
+    var currentDrawingFile: File? = null
+        private set
+
     override suspend fun initialize(): Boolean {
         isEngineReady = true
         return true
+    }
+
+    suspend fun openDrawingFile(fileName: String, file: File): Result<DrawingInfo> {
+        val ext = fileName.substringAfterLast('.', "").lowercase()
+        if (ext != "dxf" && ext != "dwg") {
+            return Result.failure(CadEngineException.UnsupportedFormatException(ext))
+        }
+
+        val deferred = CompletableDeferred<DrawingInfo>()
+        pendingLoadDeferred = deferred
+        currentDrawingFile = file
+        currentDrawingBytes = null
+
+        val safeName = JSONObject.quote(fileName)
+        val script = "if (window.loadCurrentDrawing) { window.loadCurrentDrawing($safeName); } else if (window.EurowindowBridge && window.EurowindowBridge.loadDrawingFromArrayBuffer) { fetch('https://cad.eurowindow.local/current-drawing-stream').then(r => r.arrayBuffer()).then(b => window.EurowindowBridge.loadDrawingFromArrayBuffer($safeName, b)); } else { window.EurowindowBridge.loadDrawingFromBase64($safeName, ''); }"
+        jsExecutor(script)
+
+        return try {
+            val info = withTimeout(JS_TIMEOUT_MS) {
+                deferred.await()
+            }
+            currentDrawingInfo = info
+            Result.success(info)
+        } catch (e: Exception) {
+            Result.failure(CadEngineException.ParseFailureException(e.message ?: "Hết thời gian nạp bản vẽ"))
+        } finally {
+            pendingLoadDeferred = null
+        }
     }
 
     override suspend fun openDrawing(fileName: String, bytes: ByteArray): Result<DrawingInfo> {
@@ -36,9 +69,9 @@ class MlightCadAdapter(
 
         val deferred = CompletableDeferred<DrawingInfo>()
         pendingLoadDeferred = deferred
+        currentDrawingFile = null
         currentDrawingBytes = bytes
 
-        // Trigger native stream loading via https://cad.eurowindow.local/current-drawing-stream
         val safeName = JSONObject.quote(fileName)
         val script = "if (window.loadCurrentDrawing) { window.loadCurrentDrawing($safeName); } else if (window.EurowindowBridge && window.EurowindowBridge.loadDrawingFromArrayBuffer) { fetch('https://cad.eurowindow.local/current-drawing-stream').then(r => r.arrayBuffer()).then(b => window.EurowindowBridge.loadDrawingFromArrayBuffer($safeName, b)); } else { window.EurowindowBridge.loadDrawingFromBase64($safeName, ''); }"
         jsExecutor(script)
@@ -60,6 +93,7 @@ class MlightCadAdapter(
         jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.closeDrawing) window.EurowindowBridge.closeDrawing();")
         currentDrawingInfo = null
         currentDrawingBytes = null
+        currentDrawingFile = null
         cachedLayers = emptyList()
         return Result.success(Unit)
     }

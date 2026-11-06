@@ -18,6 +18,7 @@ import android.webkit.WebViewClient
 import androidx.webkit.WebViewAssetLoader
 import com.eurowindow.cadviewer.engine.MlightCadAdapter
 import java.io.ByteArrayInputStream
+import java.io.FileInputStream
 
 class CadJsBridge(
     private val adapter: MlightCadAdapter,
@@ -68,8 +69,28 @@ class CadWebViewClient(
         val url = request.url
         val path = url.path ?: ""
 
-        // 1. Intercept stream for drawing data
+        // 1. Intercept stream for drawing data - support both direct local File stream and in-memory ByteArray
         if (url.host == "cad.eurowindow.local" && path == "/current-drawing-stream") {
+            val file = adapter.currentDrawingFile
+            if (file != null && file.exists()) {
+                return try {
+                    val stream = FileInputStream(file)
+                    WebResourceResponse(
+                        "application/octet-stream",
+                        null,
+                        200,
+                        "OK",
+                        mapOf(
+                            "Access-Control-Allow-Origin" to "*",
+                            "Content-Length" to file.length().toString(),
+                            "Accept-Ranges" to "bytes"
+                        ),
+                        stream
+                    )
+                } catch (e: Exception) {
+                    null
+                }
+            }
             val bytes = adapter.currentDrawingBytes
             return if (bytes != null) {
                 WebResourceResponse(
@@ -113,47 +134,70 @@ class CadWebViewClient(
             }
         }
 
-        // 3. Intercept WebAssembly files (.wasm) with proper application/wasm MIME type and CORS
+        // 3. Intercept WebAssembly files (.wasm) with exact Content-Length, proper application/wasm MIME type and CORS
         if (url.host == "cad.eurowindow.local" && path.endsWith(".wasm")) {
             val fileName = path.substringAfterLast('/')
-            // Try standard asset paths
             val candidates = listOf(
                 path.removePrefix("/assets/"),
                 "web-runtime/assets/$fileName",
                 "web-runtime/workers/$fileName",
+                "web-runtime/$fileName",
                 "web-runtime$path"
             )
             for (candidate in candidates) {
                 try {
+                    val length = try {
+                        val afd = context.assets.openFd(candidate)
+                        val l = afd.length
+                        afd.close()
+                        l
+                    } catch (_: Exception) {
+                        try { context.assets.open(candidate).use { it.available().toLong() } } catch (_: Exception) { -1L }
+                    }
                     val stream = context.assets.open(candidate)
+                    val headers = mutableMapOf(
+                        "Access-Control-Allow-Origin" to "*",
+                        "Accept-Ranges" to "bytes"
+                    )
+                    if (length > 0) {
+                        headers["Content-Length"] = length.toString()
+                    }
                     return WebResourceResponse(
                         "application/wasm",
                         null,
                         200,
                         "OK",
-                        mapOf("Access-Control-Allow-Origin" to "*"),
+                        headers,
                         stream
                     )
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                    // try next
+                }
             }
         }
 
-        // 4. Intercept worker scripts (/workers/...)
-        if (url.host == "cad.eurowindow.local" && (path.startsWith("/workers/") || path.contains("/workers/"))) {
+        // 4. Intercept Worker scripts (.js) that might be requested at different relative paths
+        if (url.host == "cad.eurowindow.local" && (path.endsWith("worker.js") || path.contains("worker"))) {
             val workerFile = path.substringAfterLast('/')
-            val assetPath = "web-runtime/workers/$workerFile"
-            return try {
-                val stream = context.assets.open(assetPath)
-                WebResourceResponse(
-                    "application/javascript",
-                    "UTF-8",
-                    200,
-                    "OK",
-                    mapOf("Access-Control-Allow-Origin" to "*"),
-                    stream
-                )
-            } catch (e: Exception) {
-                null
+            val candidates = listOf(
+                "web-runtime/workers/$workerFile",
+                "web-runtime/assets/$workerFile",
+                "web-runtime/$workerFile"
+            )
+            for (candidate in candidates) {
+                try {
+                    val stream = context.assets.open(candidate)
+                    return WebResourceResponse(
+                        "application/javascript",
+                        "UTF-8",
+                        200,
+                        "OK",
+                        mapOf("Access-Control-Allow-Origin" to "*"),
+                        stream
+                    )
+                } catch (_: Exception) {
+                    // try next
+                }
             }
         }
 

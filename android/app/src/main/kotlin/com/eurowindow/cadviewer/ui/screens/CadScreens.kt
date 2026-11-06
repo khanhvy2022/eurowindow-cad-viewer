@@ -34,6 +34,14 @@ data class SampleDrawingItem(
 
 val SAMPLE_DRAWINGS = listOf(
     SampleDrawingItem(
+        assetPath = "sample-drawings/sample-door.dwg",
+        title = "Cửa đi nhôm kính Eurowindow (DWG)",
+        fileName = "sample-door.dwg",
+        specs = "Chuẩn AutoCAD DWG • 35 KB",
+        description = "Bản vẽ định dạng DWG kiểm tra bộ giải mã LibreDWG WASM",
+        badgeColor = Color(0xFFE65100)
+    ),
+    SampleDrawingItem(
         assetPath = "sample-drawings/sheet_0.dxf",
         title = "Tấm cắt kỹ thuật Eurowindow",
         fileName = "sheet_0.dxf",
@@ -226,8 +234,8 @@ fun DrawingsScreen(
         val uri = result.data?.data
         if (uri != null) {
             SafManager.takePersistablePermission(context, uri)
-            val info = SafManager.queryFileInfo(context, uri)
-            onOpenDrawing(uri, info.displayName)
+            val info = SafManager.cacheUriToSandbox(context, uri)
+            onOpenDrawing(info.uri, info.displayName)
         }
     }
 

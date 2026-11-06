@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eurowindow.cadviewer.NavKey
 import com.eurowindow.cadviewer.ViewerNavKey
 import com.eurowindow.cadviewer.data.repository.DrawingRepository
+import com.eurowindow.cadviewer.saf.SafManager
 import com.eurowindow.cadviewer.ui.screens.DrawingsScreen
 import com.eurowindow.cadviewer.ui.screens.FavoritesScreen
 import com.eurowindow.cadviewer.ui.screens.RecentScreen
@@ -43,8 +44,13 @@ fun MainScreen(
 
     fun openDrawing(uri: Uri, displayName: String) {
         coroutineScope.launch {
-            repository.recordDrawingOpened(uri)
-            onItemClick(ViewerNavKey(uri.toString(), displayName))
+            val safeInfo = if (uri.scheme == "content") {
+                SafManager.cacheUriToSandbox(context, uri)
+            } else {
+                SafManager.queryFileInfo(context, uri)
+            }
+            repository.recordDrawingOpened(safeInfo.uri)
+            onItemClick(ViewerNavKey(safeInfo.uri.toString(), safeInfo.displayName))
         }
     }
 

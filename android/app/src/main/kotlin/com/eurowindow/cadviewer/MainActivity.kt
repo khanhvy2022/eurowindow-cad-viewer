@@ -55,9 +55,9 @@ class MainActivity : ComponentActivity() {
         val targetUri = extractUri(intent) ?: return
 
         SafManager.takePersistablePermission(this, targetUri)
-        val info = SafManager.queryFileInfo(this, targetUri)
+        val info = SafManager.cacheUriToSandbox(this, targetUri)
         incomingDrawingFlow.value = IncomingDrawingRequest(
-            uriString = targetUri.toString(),
+            uriString = info.uri.toString(),
             displayName = info.displayName
         )
     }

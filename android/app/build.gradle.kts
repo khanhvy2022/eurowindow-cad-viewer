@@ -12,8 +12,12 @@ android {
     applicationId = "com.eurowindow.cadviewer"
     minSdk = 26
     targetSdk = 34
-    versionCode = 8
-    versionName = "1.0.7"
+    versionCode = 9
+    versionName = "1.0.8"
+  }
+
+  androidResources {
+    noCompress += listOf("wasm", "dwg", "dxf")
   }
 
   signingConfigs {
@@ -106,3 +110,5 @@ dependencies {
   // WebView AssetLoader for secure offline runtime
   implementation(libs.androidx.webkit)
 }
+
+
