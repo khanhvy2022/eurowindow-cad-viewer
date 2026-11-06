@@ -241,7 +241,9 @@ fun configureCadWebView(
     onCrash: () -> Unit
 ) {
     webView.apply {
-        setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        // WebGL creates and composites its own hardware surface. Using LAYER_TYPE_HARDWARE on the WebView
+        // view hierarchy causes texture allocation failures, pitch-black screen, and severe GPU lag on mobile.
+        setLayerType(View.LAYER_TYPE_NONE, null)
         setBackgroundColor(Color.parseColor("#121212"))
         settings.apply {
             javaScriptEnabled = true
@@ -249,9 +251,10 @@ fun configureCadWebView(
             databaseEnabled = true
             allowFileAccess = true
             allowContentAccess = true
-            useWideViewPort = true
-            loadWithOverviewMode = true
-            setSupportZoom(true)
+            // Disable wide viewport and overview mode so WebGL receives 1:1 touch/gesture events without WebView zoom interference
+            useWideViewPort = false
+            loadWithOverviewMode = false
+            setSupportZoom(false)
             builtInZoomControls = false
             displayZoomControls = false
             cacheMode = WebSettings.LOAD_DEFAULT
