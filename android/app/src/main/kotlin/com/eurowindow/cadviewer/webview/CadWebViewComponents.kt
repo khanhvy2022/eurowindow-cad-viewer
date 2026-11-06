@@ -74,10 +74,14 @@ class CadWebViewClient(
             return if (bytes != null) {
                 WebResourceResponse(
                     "application/octet-stream",
-                    "UTF-8",
+                    null,
                     200,
                     "OK",
-                    mapOf("Access-Control-Allow-Origin" to "*"),
+                    mapOf(
+                        "Access-Control-Allow-Origin" to "*",
+                        "Content-Length" to bytes.size.toString(),
+                        "Accept-Ranges" to "bytes"
+                    ),
                     ByteArrayInputStream(bytes)
                 )
             } else {

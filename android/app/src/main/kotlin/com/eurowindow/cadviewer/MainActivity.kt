@@ -1,6 +1,8 @@
 package com.eurowindow.cadviewer
 
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,22 +13,22 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.eurowindow.cadviewer.saf.SafManager
 import com.eurowindow.cadviewer.ui.theme.EurowindowCADViewerTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+
+data class IncomingDrawingRequest(
+    val uriString: String,
+    val displayName: String
+)
 
 class MainActivity : ComponentActivity() {
+
+    private val incomingDrawingFlow = MutableStateFlow<IncomingDrawingRequest?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        var initialUri: String? = null
-        var initialDisplayName: String? = null
-
-        val uri = intent?.data
-        if (uri != null && (intent?.action == Intent.ACTION_VIEW || intent?.action == Intent.ACTION_EDIT)) {
-            SafManager.takePersistablePermission(this, uri)
-            val info = SafManager.queryFileInfo(this, uri)
-            initialUri = uri.toString()
-            initialDisplayName = info.displayName
-        }
+        handleIncomingIntent(intent)
 
         setContent {
             EurowindowCADViewerTheme {
@@ -35,11 +37,44 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     MainNavigation(
-                        initialUri = initialUri,
-                        initialDisplayName = initialDisplayName
+                        incomingDrawingFlow = incomingDrawingFlow
                     )
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        if (intent == null) return
+        val targetUri = extractUri(intent) ?: return
+
+        SafManager.takePersistablePermission(this, targetUri)
+        val info = SafManager.queryFileInfo(this, targetUri)
+        incomingDrawingFlow.value = IncomingDrawingRequest(
+            uriString = targetUri.toString(),
+            displayName = info.displayName
+        )
+    }
+
+    private fun extractUri(intent: Intent): Uri? {
+        val action = intent.action ?: return intent.data
+        return when (action) {
+            Intent.ACTION_VIEW, Intent.ACTION_EDIT -> intent.data
+            Intent.ACTION_SEND -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(Intent.EXTRA_STREAM)
+                } ?: intent.data
+            }
+            else -> intent.data
         }
     }
 }

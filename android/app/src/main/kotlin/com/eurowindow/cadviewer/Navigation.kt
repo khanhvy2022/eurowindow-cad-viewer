@@ -1,8 +1,10 @@
 package com.eurowindow.cadviewer
 
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.eurowindow.cadviewer.ui.main.MainScreen
 import com.eurowindow.cadviewer.ui.screens.ViewerScreen
+import kotlinx.coroutines.flow.StateFlow
 
 sealed interface CadScreen {
     object Main : CadScreen
@@ -11,17 +13,16 @@ sealed interface CadScreen {
 
 @Composable
 fun MainNavigation(
-    initialUri: String? = null,
-    initialDisplayName: String? = null
+    incomingDrawingFlow: StateFlow<IncomingDrawingRequest?>
 ) {
-    var currentScreen by remember {
-        mutableStateOf<CadScreen>(
-            if (initialUri != null) {
-                CadScreen.Viewer(initialUri, initialDisplayName ?: "Bản vẽ CAD")
-            } else {
-                CadScreen.Main
-            }
-        )
+    val incomingDrawing by incomingDrawingFlow.collectAsStateWithLifecycle()
+    var currentScreen by remember { mutableStateOf<CadScreen>(CadScreen.Main) }
+
+    LaunchedEffect(incomingDrawing) {
+        val req = incomingDrawing
+        if (req != null) {
+            currentScreen = CadScreen.Viewer(req.uriString, req.displayName)
+        }
     }
 
     when (val screen = currentScreen) {

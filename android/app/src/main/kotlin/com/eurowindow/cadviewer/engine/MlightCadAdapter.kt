@@ -11,7 +11,7 @@ class MlightCadAdapter(
 
     companion object {
         const val ENABLE_COMMERCIAL_DWG_PARSER = true
-        private const val JS_TIMEOUT_MS = 60000L
+        private const val JS_TIMEOUT_MS = 120000L
     }
 
     private var isEngineReady = false
@@ -39,7 +39,8 @@ class MlightCadAdapter(
         currentDrawingBytes = bytes
 
         // Trigger native stream loading via https://cad.eurowindow.local/current-drawing-stream
-        val script = "if (window.loadCurrentDrawing) { window.loadCurrentDrawing('$fileName'); } else if (window.EurowindowBridge && window.EurowindowBridge.loadDrawingFromArrayBuffer) { fetch('https://cad.eurowindow.local/current-drawing-stream').then(r => r.arrayBuffer()).then(b => window.EurowindowBridge.loadDrawingFromArrayBuffer('$fileName', b)); } else { window.EurowindowBridge.loadDrawingFromBase64('$fileName', ''); }"
+        val safeName = JSONObject.quote(fileName)
+        val script = "if (window.loadCurrentDrawing) { window.loadCurrentDrawing($safeName); } else if (window.EurowindowBridge && window.EurowindowBridge.loadDrawingFromArrayBuffer) { fetch('https://cad.eurowindow.local/current-drawing-stream').then(r => r.arrayBuffer()).then(b => window.EurowindowBridge.loadDrawingFromArrayBuffer($safeName, b)); } else { window.EurowindowBridge.loadDrawingFromBase64($safeName, ''); }"
         jsExecutor(script)
 
         return try {
