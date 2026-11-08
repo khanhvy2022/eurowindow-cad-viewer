@@ -74,7 +74,7 @@ declare global {
 }
 
 let isInitialized = false;
-let preferOverviewStrip = false;
+let preferOverviewStrip = true;
 let currentLoadingFileName = '';
 
 function getActiveView(): any {
@@ -297,7 +297,7 @@ async function initViewer(containerId: string): Promise<boolean> {
 
     AcApDocManager.instance.events.documentActivated.addEventListener(args => {
       console.log('[Eurowindow CAD] Document activated:', args.doc.docTitle);
-      preferOverviewStrip = false;
+      preferOverviewStrip = true;
       ensureBestSpace(args.doc);
     });
 
@@ -430,6 +430,32 @@ function computeFastSmartExtents(view: any): any {
     if (activeLayout?.cachedSmartExtents) {
       return activeLayout.cachedSmartExtents;
     }
+    // Prefer the real sheet frames (title-block borders) over geometric outlier pruning:
+    // stray far-away points must not shrink the view or hide any sheet.
+    try {
+      const doc = AcApDocManager.instance.curDocument as any;
+      const ms = doc?.database?.tables?.blockTable?.modelSpace;
+      if (ms && typeof ms.newIterator === 'function') {
+        let fMinX = Infinity, fMinY = Infinity, fMaxX = -Infinity, fMaxY = -Infinity, frames = 0;
+        for (const ent of ms.newIterator()) {
+          const layerName = String(ent?.layer ?? '').toUpperCase();
+          if (layerName !== 'TPL_BOUND') continue;
+          const b = ent.geometricExtents;
+          if (!b?.min || !b?.max) continue;
+          if (![b.min.x, b.min.y, b.max.x, b.max.y].every(Number.isFinite)) continue;
+          fMinX = Math.min(fMinX, b.min.x); fMinY = Math.min(fMinY, b.min.y);
+          fMaxX = Math.max(fMaxX, b.max.x); fMaxY = Math.max(fMaxY, b.max.y);
+          frames++;
+        }
+        if (frames >= 1 && fMaxX > fMinX && fMaxY > fMinY) {
+          const raw = view.getDrawingExtents?.();
+          const fbox = raw && typeof raw.clone === 'function' ? raw.clone() : { min: { x: 0, y: 0 }, max: { x: 0, y: 0 } };
+          fbox.min.x = fMinX; fbox.min.y = fMinY; fbox.max.x = fMaxX; fbox.max.y = fMaxY;
+          if (activeLayout) activeLayout.cachedSmartExtents = fbox;
+          return fbox;
+        }
+      }
+    } catch (_) {}
     const items = activeLayout?._spatialIndex?.rootIndex?.all?.();
     if (Array.isArray(items) && items.length >= 4) {
       let boxes: Array<{ minX: number; minY: number; maxX: number; maxY: number }> = [];

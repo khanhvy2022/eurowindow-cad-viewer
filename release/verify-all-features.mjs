@@ -147,6 +147,10 @@ server.listen(PORT, '127.0.0.1', async () => {
     })()`, true);
     const loadDurationSec = ((performance.now() - t0) / 1000).toFixed(1);
     console.log(`[VERIFY TEST 1 RESULT] Load success: ${loadSuccess} in ${loadDurationSec}s`);
+    await new Promise(r => setTimeout(r, 1500));
+    const openShot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('F:\\EW DWG View\\release\\default-view-after-open.png', Buffer.from(openShot.data, 'base64'));
+    console.log('[VERIFY TEST 1b] Saved default-view-after-open.png (view right after opening)');
 
     // TEST 2: Inspect Drawing Info & Layer Completeness
     console.log('[VERIFY TEST 2] Inspecting drawing metadata & layers...');
@@ -211,7 +215,7 @@ server.listen(PORT, '127.0.0.1', async () => {
         afterFitSheet: z3,
         navWasEnabled,
         navAfterPinchTouch,
-        zoomWorked: Math.abs(z1 - z0) > 0.001
+        zoomWorked: Math.abs(z1 / z0 - 1) > 0.05
       };
     })()`, true);
     console.log('[VERIFY TEST 4 RESULT] Zoom test:', zoomTest);
