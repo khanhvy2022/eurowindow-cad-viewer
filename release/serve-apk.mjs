@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const PORT = 8888;
-const apkPath = 'F:\\EW DWG View\\release\\com.eurowindow.cadviewer-v1.0.14-release.apk';
+const apkPath = 'F:\\EW DWG View\\release\\com.eurowindow.cadviewer-v1.0.15-release.apk';
 
 const server = http.createServer((req, res) => {
   if (req.url === '/' || req.url.startsWith('/download') || req.url.endsWith('.apk')) {
@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       'Content-Type': 'application/vnd.android.package-archive',
       'Content-Length': stat.size,
-      'Content-Disposition': 'attachment; filename="com.eurowindow.cadviewer-v1.0.14-release.apk"',
+      'Content-Disposition': 'attachment; filename="com.eurowindow.cadviewer-v1.0.15-release.apk"',
       'Access-Control-Allow-Origin': '*'
     });
     fs.createReadStream(apkPath).pipe(res);

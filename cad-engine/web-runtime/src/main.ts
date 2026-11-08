@@ -782,12 +782,14 @@ window.EurowindowBridge = {
   },
   setActiveColor: (aciColor: number) => {
     try {
-      AcApDocManager.instance.sendStringToExecute(`cecolor ${aciColor}`);
-      setTimeout(() => {
-        try {
-          AcApDocManager.instance.sendStringToExecute(`measurementcolor ${aciColor}`);
-        } catch (_) {}
-      }, 60);
+      const doc = AcApDocManager.instance.curDocument as any;
+      if (doc?.database?.cecolor) {
+        doc.database.cecolor.colorIndex = aciColor;
+      }
+      const sm = (window as any).AcApSettingManager?.instance;
+      if (sm && typeof sm.set === 'function') {
+        sm.set('color', aciColor);
+      }
     } catch (e) {
       console.warn('[Eurowindow CAD] setActiveColor error:', e);
     }

@@ -198,6 +198,16 @@ for (const file of files) {
     console.log('  [OK] 7C. Localized live measurement & coordinate HUD labels to Vietnamese.');
   }
 
+  // 7D. Fix setActiveColor so it updates database.cecolor instead of sending invalid CLI string
+  const oldActiveColorRegex = /setActiveColor:r=>\{try\{([A-Za-z0-9_$]+)\.instance\.sendStringToExecute\(`cecolor \$\{r\}`\),setTimeout\(\(\)=>\{try\{\1\.instance\.sendStringToExecute\(`measurementcolor \$\{r\}`\)\}catch\{\}\},60\)\}catch\(e\)\{console\.warn\("\[Eurowindow CAD\] setActiveColor error:",e\)\}\}/;
+  if (oldActiveColorRegex.test(content)) {
+    content = content.replace(
+      oldActiveColorRegex,
+      `setActiveColor:r=>{try{const d=$1.instance.curDocument;if(d&&d.database&&d.database.cecolor){d.database.cecolor.colorIndex=Number(r)||1;}window.AcApSettingManager?.instance?.set?.('color',Number(r)||1);}catch(e){console.warn("[Eurowindow CAD] setActiveColor error:",e)}}`
+    );
+    console.log('  [OK] 7D. Patched setActiveColor to set database.cecolor & settings directly without CLI error.');
+  }
+
   fs.writeFileSync(filePath, content, 'utf8');
   console.log(`Saved ${file} (new size: ${content.length}).`);
 }
