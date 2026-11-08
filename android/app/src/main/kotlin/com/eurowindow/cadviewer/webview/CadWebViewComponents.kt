@@ -265,6 +265,7 @@ fun configureCadWebView(
                 val msg = consoleMessage?.message() ?: ""
                 val level = consoleMessage?.messageLevel()
                 Log.d("CadWebView", "[$level] $msg (line: ${consoleMessage?.lineNumber()})")
+                CadDiagnostics.record(level?.name ?: "LOG", msg)
                 return true
             }
         }

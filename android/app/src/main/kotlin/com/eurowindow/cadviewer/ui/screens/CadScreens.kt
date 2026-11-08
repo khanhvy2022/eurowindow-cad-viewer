@@ -255,7 +255,7 @@ fun DrawingsScreen(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Hỗ trợ chuẩn 100% Offline: Định dạng DXF (.dxf)",
+                text = "Hỗ trợ 100% Offline: AutoCAD DWG (.dwg) và DXF (.dxf)",
                 color = Color(0xFF90CAF9),
                 fontSize = 13.sp
             )
@@ -276,7 +276,7 @@ fun DrawingsScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Chọn tệp .dxf từ Bộ nhớ trong, Thư mục Tải về hoặc Zalo",
+                        text = "Chọn tệp .dwg / .dxf từ Bộ nhớ trong, Thư mục Tải về hoặc Zalo",
                         color = Color(0xFFB0BEC5),
                         fontSize = 12.sp
                     )

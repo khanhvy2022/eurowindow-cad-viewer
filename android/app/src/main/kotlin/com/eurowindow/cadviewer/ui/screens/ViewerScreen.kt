@@ -357,10 +357,11 @@ fun ViewerScreen(
                     },
                     text = {
                         Text(
-                            text = errorMessage ?: "",
+                            text = (errorMessage ?: "") + "\n\n— Thông tin kỹ thuật —\n" +
+                                com.eurowindow.cadviewer.webview.CadDiagnostics.report(context),
                             color = Color.White,
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
                         )
                     },
                     confirmButton = {
