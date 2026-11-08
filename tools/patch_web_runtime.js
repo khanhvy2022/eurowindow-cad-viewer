@@ -159,22 +159,33 @@ for (const file of files) {
     console.log('  [OK] 7A-2. Exposed window.AcApSettingManager.');
   }
 
-  // 7B. Instant touch OSNAP Loupe & Crosshair (25ms instead of 500ms) + 38px magnetic OSNAP radius
-  const touchLoupeDelayRegex = /const ([A-Za-z0-9_$]+)=500,([A-Za-z0-9_$]+)=10,([A-Za-z0-9_$]+)=class ([A-Za-z0-9_$]+)\{constructor\(e\)\{this\.disposed=!1/;
-  if (touchLoupeDelayRegex.test(content)) {
-    content = content.replace(
-      touchLoupeDelayRegex,
-      `const $1=25,$2=48,$3=class $4{constructor(e){this.disposed=!1`
-    );
-    console.log('  [OK] 7B-1. Patched touch OSNAP Loupe delay from 500ms to 25ms (instant Loupe & Crosshair).');
-  }
+  // 7B. Protect multi-touch pinch-to-zoom (2+ fingers) and boost OSNAP magnetic snap radius to 38px
   const osnapRadiusRegex = /const ([A-Za-z0-9_$]+)=20,([A-Za-z0-9_$]+)=16,([A-Za-z0-9_$]+)=48,([A-Za-z0-9_$]+)=8,([A-Za-z0-9_$]+)=32;/;
   if (osnapRadiusRegex.test(content)) {
     content = content.replace(
       osnapRadiusRegex,
       `const $1=38,$2=32,$3=64,$4=12,$5=48;`
     );
-    console.log('  [OK] 7B-2. Boosted OSNAP magnetic snap radius to 38px and intersection candidates to 32.');
+    console.log('  [OK] 7B-1. Boosted OSNAP magnetic snap radius to 38px and intersection candidates to 32.');
+  }
+
+  // Ensure two-finger pinch-zoom immediately re-enables navigation & cancels single-finger touch session
+  const touchPinchRegex = /g=([A-Za-z0-9_$]+)=>\{([A-Za-z0-9_$]+)\.phase!=="idle"&&\1\.touches\.length===1&&\1\.preventDefault\(\)\}/;
+  if (touchPinchRegex.test(content)) {
+    content = content.replace(
+      touchPinchRegex,
+      `g=$1=>{if($1.touches.length>1){$2.cancel(),s();return}$2.phase!=="idle"&&$1.touches.length===1&&$1.preventDefault()}`
+    );
+    console.log('  [OK] 7B-2. Protected multi-touch pinch-to-zoom navigation in P2 gesture recognizer.');
+  }
+
+  const floatingInputTouchRegex = /handleTouchStart\(e\)\{this\.visible&&e\.touches\.length===1&&e\.preventDefault\(\)\}/;
+  if (floatingInputTouchRegex.test(content)) {
+    content = content.replace(
+      floatingInputTouchRegex,
+      `handleTouchStart(e){if(e.touches.length>1){this.touchSession.cancel();this.view.setNavigationEnabled(!0);return}this.visible&&e.touches.length===1&&e.preventDefault()}`
+    );
+    console.log('  [OK] 7B-3. Protected multi-touch pinch-to-zoom navigation in floating input.');
   }
 
   // 7C. Localize live measurement & coordinate HUD panel labels to Vietnamese

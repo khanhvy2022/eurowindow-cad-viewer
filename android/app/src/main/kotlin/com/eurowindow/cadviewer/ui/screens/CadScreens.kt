@@ -458,7 +458,7 @@ fun SettingsScreen() {
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = "Eurowindow CAD Viewer", color = Color.White, fontWeight = FontWeight.Bold)
-                Text(text = "Phiên bản: v1.0.14 (Auto-OSNAP Bắt Điểm • Giao Diện DWG FastView)", color = Color.Gray, fontSize = 13.sp)
+                Text(text = "Phiên bản: v1.0.15 (Zoom Mượt Mà • Bắt Điểm Auto-OSNAP)", color = Color.Gray, fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(10.dp))
                 HorizontalDivider(color = Color(0xFF333333))
                 Spacer(modifier = Modifier.height(10.dp))
