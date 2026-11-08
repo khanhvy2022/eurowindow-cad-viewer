@@ -101,6 +101,8 @@ function onHostResize(widthCssPx?: number, heightCssPx?: number) {
     }
     const view = getActiveView();
     if (view) {
+      const dpr = Math.min(Math.max(window.devicePixelRatio || 2, 2.5), 3);
+      view._renderer?.internalRenderer?.setPixelRatio?.(dpr);
       view.onWindowResize?.();
       view.isDirty = true;
       view.requestRender?.();
@@ -136,20 +138,65 @@ function ensureBestSpace(doc: any) {
 function attachDatabaseProgress(doc: any) {
   try {
     const db = doc?.database;
-    if (!db?.events?.openProgress) return;
+    if (!db?.events?.openProgress || (db as any).__ewProgressAttached) return;
+    (db as any).__ewProgressAttached = true;
     db.events.openProgress.addEventListener((ev: any) => {
-      const pct = Math.max(0, Math.min(100, Math.round(ev.percentage ?? 0)));
+      const rawPct = Math.max(0, Math.min(100, Math.round(ev.percentage ?? 0)));
+      // Map database parse/conversion (0..100%) to 0..75% of overall load progress;
+      // the remaining 75..100% tracks scene geometry & glyph building.
+      const scaledPct = Math.min(75, Math.round(rawPct * 0.75));
       const stageLabel = ev.stage === 'PARSE'
         ? 'Đang giải mã cấu trúc DWG'
         : ev.subStage === 'FONT'
         ? 'Đang nạp phông chữ CAD'
         : ev.subStage === 'ENTITY'
-        ? 'Đang dựng hình học CAD'
+        ? 'Đang đọc thực thể CAD'
         : 'Đang xử lý dữ liệu bản vẽ';
-      const msg = `${stageLabel}: ${pct}% (${currentLoadingFileName || 'Bản vẽ'})`;
+      const msg = `${stageLabel}: ${scaledPct}% (${currentLoadingFileName || 'Bản vẽ'})`;
       updateLoadingText(msg);
-      window.AndroidBridge?.onProgress?.(pct, msg);
+      window.AndroidBridge?.onProgress?.(scaledPct, msg);
     });
+  } catch (_) {}
+}
+
+/**
+ * Waits until 100% of entities and text/block geometries in the active layout are converted
+ * into the WebGL scene, updating the progress overlay from 75% -> 100%.
+ */
+async function waitForFullSceneReady(view: any, fileName: string): Promise<void> {
+  if (!view) return;
+  const initialTotal = Math.max(1, (view._numOfEntitiesToProcess || 0) + (view._pendingGeometryJobs || 0));
+  const startTime = performance.now();
+  const maxWaitMs = 90000;
+
+  while (performance.now() - startTime < maxWaitMs) {
+    const remainingEntities = view._numOfEntitiesToProcess || 0;
+    const remainingJobs = view._pendingGeometryJobs || 0;
+    const remaining = remainingEntities + remainingJobs;
+    if (remaining <= 0 && !view.isProcessingEntities) {
+      break;
+    }
+    const doneRatio = Math.max(0, Math.min(1, 1 - remaining / Math.max(initialTotal, remaining + 1)));
+    const pct = Math.min(99, 75 + Math.round(doneRatio * 24));
+    const msg = `Đang dựng đầy đủ 100% chi tiết & chữ CAD: ${pct}% (${fileName})`;
+    updateLoadingText(msg);
+    window.AndroidBridge?.onProgress?.(pct, msg);
+    await new Promise(r => setTimeout(r, 40));
+  }
+
+  // Flush all instanced text/MTEXT glyphs into the scene immediately so no text is missing
+  try {
+    view.flushMeshGlyphWorldBatch?.();
+  } catch (_) {}
+  try {
+    view.cancelOpenLineworkFrame?.();
+    if (view._progressiveOpenFit) {
+      view._progressiveOpenFit.userAdjusted = true;
+    }
+    if (view._externallyFramedLayouts && view.activeLayoutBtrId != null) {
+      view._externallyFramedLayouts.add(view.activeLayoutBtrId);
+    }
+    view.endProgressiveOpenFit?.();
   } catch (_) {}
 }
 
@@ -191,7 +238,7 @@ async function initViewer(containerId: string): Promise<boolean> {
     const dwgConverter = new AcDbLibreDwgMainThreadConverter();
     AcDbDatabaseConverterManager.instance.register(AcDbFileType.DWG, dwgConverter);
 
-    // 3. Initialize AcApDocManager with large chunk sizes and progressive rendering
+    // 3. Initialize AcApDocManager with 100% layer & entity fidelity (drawNoPlotLayers: true, convertInvisibleLayers: true)
     AcApDocManager.createInstance({
       container,
       autoResize: true,
@@ -202,9 +249,11 @@ async function initViewer(containerId: string): Promise<boolean> {
       notificationCenter: false,
       openDocumentDefaults: () => ({
         mode: AcEdOpenMode.Read,
-        drawNoPlotLayers: false,
+        drawNoPlotLayers: true,
+        convertInvisibleLayers: true,
         minimumChunkSize: 10000,
-        progressiveRendering: true,
+        progressiveRendering: false,
+        cooperativeYield: true,
         openViewMode: AcApOpenViewMode.Extents
       }),
       webworkerFileUrls: {
@@ -224,15 +273,6 @@ async function initViewer(containerId: string): Promise<boolean> {
       console.log('[Eurowindow CAD] Document activated:', args.doc.docTitle);
       preferOverviewStrip = false;
       ensureBestSpace(args.doc);
-      hideLoadingOverlay();
-      try {
-        getActiveView()?.endProgressiveOpenFit?.();
-      } catch (_) {}
-      zoomToFit(false);
-      sendDocumentLoaded();
-
-      // Re-frame once more after deferred text/block geometry settles
-      setTimeout(() => { zoomToFit(false); }, 600);
     });
 
     // Attach ResizeObserver to keep canvas sized to Android WebView container
@@ -309,9 +349,11 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
 
   const options: any = {
     mode: AcEdOpenMode.Read,
-    drawNoPlotLayers: false,
+    drawNoPlotLayers: true,
+    convertInvisibleLayers: true,
     minimumChunkSize: 10000,
-    progressiveRendering: true,
+    progressiveRendering: false,
+    cooperativeYield: true,
     openViewMode: AcApOpenViewMode.Extents
   };
 
@@ -320,8 +362,18 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
     if (!success) {
       throw new Error(`Không thể giải mã dữ liệu bản vẽ: ${fileName}`);
     }
+
+    const view = getActiveView();
+    if (view) {
+      await waitForFullSceneReady(view, fileName);
+      if (view._scene?.activeLayout) {
+        view._scene.activeLayout.cachedSmartExtents = undefined;
+      }
+    }
+
     hideLoadingOverlay();
     await zoomToFit(false);
+    sendDocumentLoaded();
     return true;
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -340,9 +392,8 @@ async function loadDrawingFromBase64(fileName: string, base64Data: string): Prom
 }
 
 /**
- * Fast synchronous (< 2ms) outlier-filtered bounding box calculation using the top-level
- * spatial index items of the active layout. Filters out stray (0,0) reference markers or
- * distant construction points without waiting 10+ seconds for background text glyph triangulation.
+ * Fast synchronous (< 5ms) outlier-filtered bounding box calculation using the top-level
+ * spatial index items of the active layout after all 100% of entities are loaded.
  */
 function computeFastSmartExtents(view: any): any {
   try {
@@ -355,7 +406,6 @@ function computeFastSmartExtents(view: any): any {
     }
     const items = activeLayout?._spatialIndex?.rootIndex?.all?.();
     if (Array.isArray(items) && items.length >= 4) {
-      // Filter finite boxes
       let boxes: Array<{ minX: number; minY: number; maxX: number; maxY: number }> = [];
       for (let i = 0; i < items.length; i++) {
         const it = items[i];
@@ -363,7 +413,6 @@ function computeFastSmartExtents(view: any): any {
         boxes.push(it);
       }
 
-      // Gap-based outlier pruning along axis ('x' or 'y') matching MLightCAD u6/l2e
       const pruneGap = (arr: typeof boxes, axis: 'x' | 'y') => {
         if (arr.length < 8) return arr;
         const pts = arr.map(p => ({
@@ -381,11 +430,12 @@ function computeFastSmartExtents(view: any): any {
             splitIdx = i;
           }
         }
-        if (maxGap < span * 0.2) return arr;
-
         const left = pts.slice(0, splitIdx);
         const right = pts.slice(splitIdx);
         const major = left.length >= right.length ? left : right;
+        const minor = left.length < right.length ? left : right;
+        const minSpanRatio = minor.length <= Math.max(10, arr.length * 0.01) ? 0.02 : 0.2;
+        if (maxGap < span * minSpanRatio) return arr;
 
         const sizes = arr.map(p => Math.max(p.maxX - p.minX, p.maxY - p.minY, 1e-9)).sort((a, b) => a - b);
         const medSize = sizes[Math.floor(sizes.length / 2)] || 1;
@@ -438,12 +488,8 @@ function applyReadableMobileBox(view: any, box: any, useOverview: boolean) {
   const h = box.max.y - box.min.y;
   if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return false;
 
-  // When a shop drawing consists of many sheets arranged in a wide horizontal strip (w > h * 2.5),
-  // fitting all sheets at once on a narrow portrait phone makes the strip tiny.
-  // In default sheet focus mode, frame the leftmost 1-2 sheets so details are immediately large and readable;
-  // tapping "Vừa khung" toggles between Sheet Focus and Full Strip Overview.
   if (!useOverview && w > h * 2.5) {
-    const focusW = Math.min(w, Math.max(h * 1.75, w / 3.5));
+    const focusW = Math.min(w, h * 2.0);
     const focusedBox = typeof box.clone === 'function' ? box.clone() : { min: { x: 0, y: 0 }, max: { x: 0, y: 0 } };
     if (focusedBox && focusedBox.min && focusedBox.max) {
       focusedBox.min.x = box.min.x;
@@ -472,11 +518,24 @@ async function zoomToFit(toggleMode = true): Promise<void> {
     const view = getActiveView();
     if (!view) return;
 
+    try {
+      view.cancelOpenLineworkFrame?.();
+      if (view._progressiveOpenFit) {
+        view._progressiveOpenFit.userAdjusted = true;
+      }
+      if (view._externallyFramedLayouts && view.activeLayoutBtrId != null) {
+        view._externallyFramedLayouts.add(view.activeLayoutBtrId);
+      }
+      view.endProgressiveOpenFit?.();
+    } catch (_) {}
+
     if (toggleMode) {
       preferOverviewStrip = !preferOverviewStrip;
     }
 
     try {
+      const dpr = Math.min(Math.max(window.devicePixelRatio || 2, 2.5), 3);
+      view._renderer?.internalRenderer?.setPixelRatio?.(dpr);
       view.onWindowResize?.();
     } catch (_) {}
 

@@ -1,0 +1,232 @@
+{
+  "version": "1.0.0",
+  "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e",
+  "baseline_tag": "checkpoint-p0.1",
+  "total_protected_files": 32,
+  "protected_files": [
+    {
+      "relative_path": "corpus/manifest/corpus.json",
+      "sha256": "a7dff2e0b750f22470903afc7f6e6dc964075855ed102c3e947ed3127926a96f",
+      "size_bytes": 4043,
+      "protection_reason": "Test Corpus Manifest defining verified sample hashes",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "scripts/verify_file_integrity.mjs",
+      "sha256": "3aca1c9551133ad922e64f76491026801f4d0a1451a68c7664cc0c38fbd6785a",
+      "size_bytes": 2320,
+      "protection_reason": "Automated test script verifying fixture immutability",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "docs/P0.1_IMPLEMENTATION.md",
+      "sha256": "d0a52f12c0877bf8022256ed5cdaeb135e0f5514d11805942c74756c07487781",
+      "size_bytes": 4586,
+      "protection_reason": "P0.1 Foundation Architecture & Implementation Specification",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "docs/P0.1_ROLLBACK.md",
+      "sha256": "d675623ea9f049ef7c85084d07980326ce86138e9ac6fc01504328c21672f7cb",
+      "size_bytes": 1734,
+      "protection_reason": "P0.1 Rollback Procedures & Baseline Recovery Spec",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "docs/P0.1_LICENSE_CHECK.md",
+      "sha256": "4a70758e4f0b2903e43797f5033869a4847ae9c84acc24a45d617c41018a645c",
+      "size_bytes": 2172,
+      "protection_reason": "P0.1 License Compliance Audit & Dependency Classification",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "docs/P0.1_TEST_REPORT.md",
+      "sha256": "36a706e2f48ec34f7fd0d7e0ed2d3ca5fe727772d39ecd5cf8a6a4cca16145ae",
+      "size_bytes": 4396,
+      "protection_reason": "P0.1 Test Report & Evidence Verification Record",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "docs/ARCHITECTURE.md",
+      "sha256": "1026ec90a02bf1b49134bbb823fe082bc48dc63422e2d1f9aafb57e3229b604c",
+      "size_bytes": 3736,
+      "protection_reason": "System Architecture & Architectural Decision Records",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "docs/LICENSE_AUDIT.md",
+      "sha256": "e5549c5b08d09c7cfd799f43c9050a46f97c07b1170c17629cf1177599f78348",
+      "size_bytes": 5273,
+      "protection_reason": "Baseline Third-Party License Audit Report",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "docs/REPOSITORY_AUDIT.md",
+      "sha256": "594b4383df2ce0566c0b2abea17e9793bbfadd756154dbaea09915b5a765eca0",
+      "size_bytes": 4842,
+      "protection_reason": "Initial Repository Reconnaissance & Audit Findings",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "evidence/P0.1/file-integrity-results.json",
+      "sha256": "a906febf77a762c0626295300a6b164347cc452b8fbea8e6fbe3fcc59bd1d327",
+      "size_bytes": 4416,
+      "protection_reason": "P0.1 Immutable File Integrity Verification Results",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "evidence/P0.1/results.json",
+      "sha256": "5ee0cba2674f5d86abe94218d163fb192d6c9aad7eab4f45c53a17cb6cfd7f30",
+      "size_bytes": 1498,
+      "protection_reason": "P0.1 Milestone Acceptance Verdict & Test Results",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "evidence/P0.1/license-audit-result.json",
+      "sha256": "cbc4507adfa0723ebd29312dcf197a2f69eb53a6dc8afeb414c4d2a2e47c1e95",
+      "size_bytes": 345,
+      "protection_reason": "P0.1 License Verification Results & Manifest Evidence",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "evidence/P0.0/audit-verdict.json",
+      "sha256": "5ffa9b1e8ae2c571f8f9e88f1909abf7ab6f96c4996685dbd9f8e4959a1bc4c3",
+      "size_bytes": 1358,
+      "protection_reason": "P0.0 Feasibility & Audit Verdict Record",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "android/app/src/main/kotlin/com/eurowindow/cadviewer/engine/CadEngineContracts.kt",
+      "sha256": "c7857b63a100505056de1cea9e1a539786ad12cb0219f06d007d2c2ca5cfa136",
+      "size_bytes": 2184,
+      "protection_reason": "Core Domain CAD Engine Contract & Exception Abstractions",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "android/app/src/main/kotlin/com/eurowindow/cadviewer/saf/SafManager.kt",
+      "sha256": "c48bb462c395f86328c9a4e9dbc4efcea51dbe6ff56bf6cc4d0c8e3e512b0489",
+      "size_bytes": 3759,
+      "protection_reason": "Read-only Storage Access Framework Ingestion Pipeline",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "android/app/src/main/kotlin/com/eurowindow/cadviewer/data/database/CadDatabase.kt",
+      "sha256": "e66e4a73e9c40fff5efb1c4ea1f45f98947ea9b46c7f92d3aadc411afcb6b4b5",
+      "size_bytes": 1209,
+      "protection_reason": "Room Metadata Database Definition & DAOs",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "android/app/src/main/kotlin/com/eurowindow/cadviewer/data/entity/Entities.kt",
+      "sha256": "985a81cb29f3e58c09fac3db997124252d55cf99f28e5288d209f3b86348eee3",
+      "size_bytes": 761,
+      "protection_reason": "Room Metadata & Sidecar Measurement Entities",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "android/app/src/main/kotlin/com/eurowindow/cadviewer/data/dao/Daos.kt",
+      "sha256": "1d1af5f5760c34333023925847044f57c82cbee3bfccf2116a13d99043bd0be6",
+      "size_bytes": 1895,
+      "protection_reason": "Room Data Access Objects (DAOs)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/aci7-bylayer-background.dxf",
+      "sha256": "571ac648a9354c1fbddd4a518ee50c2a92b7661b5c681c89a500fcbd3da50f12",
+      "size_bytes": 789,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (aci7-bylayer-background.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/block-color.dxf",
+      "sha256": "4f9f0a294659133134bbf72304c10bbbf4784e25a805d0222015e88b30a557d2",
+      "size_bytes": 621441,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (block-color.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/empty.dxf",
+      "sha256": "1c3429b6550fde95476bd954f683fb3bc8c10e2b9464d35b1b203dc50e6e3edd",
+      "size_bytes": 253,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (empty.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/find-blocks.dxf",
+      "sha256": "7fd4c9ce78ed8ffe128fd7a35af99af3fda2085fc803b2b369e9c866e098a0dc",
+      "size_bytes": 7410,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (find-blocks.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/find-layouts.dxf",
+      "sha256": "bd8c9af9d48c690670e91cabc10518c5e40d42d3abdc6048fc0688cdc4e3616a",
+      "size_bytes": 6794,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (find-layouts.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/invisible-lwpolylines-in-block.dxf",
+      "sha256": "620ee204e2bedb25f96e01f8f2c53d4010bd3f8f1c13935db5102e20523b4252",
+      "size_bytes": 842,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (invisible-lwpolylines-in-block.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/invisible-lwpolylines.dxf",
+      "sha256": "8e673e10ffe134c037454797c015f5b3a04ac18017bc92da97c556470b248b7c",
+      "size_bytes": 610,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (invisible-lwpolylines.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/layer0-aci7-explicit-insert.dxf",
+      "sha256": "ab771d26c4f4500385b00b72a582b93cdb62f72abc9388011fecf2b1589f8068",
+      "size_bytes": 1270,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (layer0-aci7-explicit-insert.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/minimal-line.dxf",
+      "sha256": "da82faaa9c9684e014cae8942389eb7a515bf2defdae9d0e35274ed5b51af8fe",
+      "size_bytes": 452,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (minimal-line.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/nested-insert-layers.dxf",
+      "sha256": "9f1db62951bbf1c543ae3d6801b679e3a4d4abc31b18d7e52295d4f9c3f41c9c",
+      "size_bytes": 1100,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (nested-insert-layers.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/shape-entity.dxf",
+      "sha256": "078fb3667346ae36167d70995c0d1bc5a27b7fb25a1eb550226144a62b632f11",
+      "size_bytes": 666,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (shape-entity.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/sheet_0.dxf",
+      "sha256": "a7c21580e12ca39ca65b44501221e1c1073b30bc312a4f5608c4121bc66dde64",
+      "size_bytes": 2212649,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (sheet_0.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/visible-lwpolylines-in-block.dxf",
+      "sha256": "a8929437fa50b0cf3bc7efcbaef74b82c4a3752099dcb3c7469b39fc9f2265bd",
+      "size_bytes": 842,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (visible-lwpolylines-in-block.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    },
+    {
+      "relative_path": "corpus/originals/fixtures/visible-lwpolylines.dxf",
+      "sha256": "6d2c20c3b389e0d2a3332171de7e2fd4b57ef56ebba7f6f57c7aec6fd58b0ce6",
+      "size_bytes": 610,
+      "protection_reason": "Official P0.1 CAD Test Corpus Fixture (visible-lwpolylines.dxf)",
+      "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e"
+    }
+  ]
+}

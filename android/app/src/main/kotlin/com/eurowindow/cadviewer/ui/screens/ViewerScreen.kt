@@ -110,7 +110,7 @@ fun ViewerScreen(
                             color = Color.White
                         )
                         Text(
-                            text = "Eurowindow CAD Viewer • DWG FastView Mode",
+                            text = "Eurowindow CAD Viewer • Full HD 100% CAD",
                             fontSize = 11.sp,
                             color = Color(0xFF90CAF9)
                         )

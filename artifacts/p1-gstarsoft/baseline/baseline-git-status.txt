@@ -1,0 +1,14 @@
+On branch feature/cad-viewer-p0
+Your branch is up to date with 'origin/feature/cad-viewer-p0'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	cad-engine/web-runtime/download-v106.py
+	cad-engine/web-runtime/test-chrome-cdp.py
+	cad-engine/web-runtime/test-chrome.mjs
+	cad-engine/web-runtime/test-render-smart.png
+	cad-engine/web-runtime/test-render.png
+	release/debug/v1.0.5-apks.zip
+	release/debug/v1.0.6-apks.zip
+
+nothing added to commit but untracked files present (use "git add" to track)

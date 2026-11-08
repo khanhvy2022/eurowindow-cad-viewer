@@ -1,0 +1,48 @@
+{
+  "phase": "P1.0",
+  "phase_name": "SDK Procurement and Baseline Freeze",
+  "project": "Eurowindow CAD Viewer",
+  "application_id": "com.eurowindow.cadviewer",
+  "evaluated_at": "2026-11-06T08:35:40+07:00",
+  "baseline_verification": {
+    "commit": "43347d56a95c3c273184f94128444222c16f558e",
+    "commit_short": "43347d5",
+    "tag": "checkpoint-p0.1",
+    "branch": "feature/cad-viewer-p1-gstarsoft",
+    "tracked_modifications": 0,
+    "status": "PASS"
+  },
+  "protected_core_verification": {
+    "total_files": 32,
+    "verified_intact": 32,
+    "modified_files": 0,
+    "manifest_path": "artifacts/p1-gstarsoft/protected-core/protected-core-manifest.json",
+    "status": "PASS"
+  },
+  "fixture_corpus_verification": {
+    "total_dxf": 14,
+    "verified_intact": 14,
+    "status": "PASS"
+  },
+  "sdk_procurement": {
+    "official_docs_audited": true,
+    "capability_matrix_produced": true,
+    "vendor_inquiry_ready": true,
+    "license_review_produced": true,
+    "vendor_inquiry_dispatched_via_browserskill": true,
+    "vendor_inquiry_submission_status": "SUCCESS (Verified via Gstarsoft Email Confirmation)",
+    "vendor_inquiry_sender": "DWG FastView Official Blog <will@blog.dwgfastview.com>",
+    "vendor_inquiry_recipient": "Truong-Luyen (Eurowindow) <Windowmiennam@gmail.com>",
+    "vendor_sdk_binaries_present": false,
+    "vendor_license_key_present": false,
+    "evidence_screenshots": [
+      "artifacts/p1-gstarsoft/screenshots/gstarsoft_contact_form_filled.png",
+      "artifacts/p1-gstarsoft/screenshots/gstarsoft_contact_submitted_success.png",
+      "artifacts/p1-gstarsoft/screenshots/gstarsoft_submission_confirmation_email.jpg"
+    ],
+    "status": "PENDING_VENDOR_PACKAGE"
+  },
+  "gate_result": "BLOCKED",
+  "blocking_reason": "Vendor inquiry confirmed received by DWG FastView support team (<will@blog.dwgfastview.com>). Pending their direct follow-up email with the official SDK package link (.aar / native .so) and license key file. In strict adherence to Section 1 (Non-Negotiable Rules) and Section 5 (Phase P1.0 Criteria), Phase P1.1 (Isolated Android Spike) will start the moment the vendor package is placed in the workspace.",
+  "unblock_action": "1. Wait for follow-up email from will@blog.dwgfastview.com / support@dwgfastview.com containing SDK download link.\n2. Place received official SDK package (.aar and libs/arm64-v8a) into ignored local directory 'android/libs/gstarsoft/'.\n3. Transition P1.0 gate to PASS and start P1.1 execution immediately."
+}

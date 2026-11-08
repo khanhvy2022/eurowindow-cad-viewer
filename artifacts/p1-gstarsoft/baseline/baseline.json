@@ -1,0 +1,15 @@
+{
+  "project": "Eurowindow CAD Viewer",
+  "application_id": "com.eurowindow.cadviewer",
+  "workspace": "F:\\EW DWG View",
+  "baseline_commit": "43347d56a95c3c273184f94128444222c16f558e",
+  "baseline_commit_short": "43347d5",
+  "baseline_tag": "checkpoint-p0.1",
+  "baseline_branch": "feature/cad-viewer-p0",
+  "target_branch": "feature/cad-viewer-p1-gstarsoft",
+  "verified_at": "2026-11-06T08:08:00+07:00",
+  "status": "VERIFIED",
+  "protected_core_files_count": 32,
+  "dxf_fixtures_count": 14,
+  "dxf_fixtures_verified": true
+}
