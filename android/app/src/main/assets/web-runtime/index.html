@@ -42,12 +42,39 @@
     }
     .ml-ui-simple-toolbar,
     .ml-ui-simple-toolbar-host,
+    .ml-ui-shortcut-toolbar,
+    .ml-ui-shortcut-toolbar-shell,
     .ml-notification-center,
+    .ml-ui-notification-center,
+    .ml-ui-touch-point-tutorial,
     .ml-ccl-loader,
-    [class*="ml-ui-"],
-    [class*="ml-ccl-"],
+    .ml-ccl-overlay,
+    .ml-ccl-wrapper,
+    .ml-cli-container,
+    .ml-cli-wrapper,
     [class*="notification-center"] {
       display: none !important;
+    }
+    /* Position live measurement & command HUD cleanly above bottom dock bar */
+    .ml-mobile-cmd-panel {
+      bottom: 68px !important;
+      z-index: 50 !important;
+    }
+    /* High-visibility OSNAP markers & Magnifier Loupe */
+    .ml-snap-loupe {
+      border: 2px solid #00e5ff !important;
+      border-radius: 10px !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75) !important;
+      z-index: 60 !important;
+    }
+    .ml-marker {
+      color: #00ff66 !important;
+      filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.95));
+      z-index: 55 !important;
+    }
+    .ml-simulated-mouse-cursor {
+      color: #00e5ff !important;
+      z-index: 56 !important;
     }
     #loading-overlay {
       position: fixed;
@@ -87,7 +114,7 @@
       padding: 0 24px;
     }
   </style>
-  <script type="module" crossorigin src="./viewer-_t9UaiuP.js"></script>
+  <script type="module" crossorigin src="./viewer-C4BnPUVI.js"></script>
 </head>
 <body>
   <div id="cad-container"></div>

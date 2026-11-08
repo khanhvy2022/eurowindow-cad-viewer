@@ -141,6 +141,52 @@ for (const file of files) {
     console.warn('  [WARN] 6. AcTrView2d slice constants pattern not matched.');
   }
 
+  // 7A. Expose AcApSettingManager globally & enable all OSNAP modes + hide touch tutorial popup
+  const settingExportRegex = /osnapModes:([A-Za-z0-9_$]+)\(\[([A-Za-z0-9_$]+)\.EndPoint,\2\.MidPoint,\2\.Center,\2\.Quadrant,\2\.Intersection,\2\.Nearest\]\),hideTouchPointTutorial:!1/;
+  if (settingExportRegex.test(content)) {
+    content = content.replace(
+      settingExportRegex,
+      `osnapModes:$1([$2.EndPoint,$2.MidPoint,$2.Center,$2.Quadrant,$2.Intersection,$2.Perpendicular,$2.Nearest]),hideTouchPointTutorial:!0`
+    );
+    console.log('  [OK] 7A-1. Enabled full OSNAP modes (EndPoint, MidPoint, Center, Quadrant, Intersection, Perpendicular, Nearest) & hid tutorial.');
+  }
+  const settingMgrRegex = /([A-Za-z0-9_$]+)\._storageKey=([A-Za-z0-9_$]+);let ([A-Za-z0-9_$]+)=\1;/;
+  if (settingMgrRegex.test(content)) {
+    content = content.replace(
+      settingMgrRegex,
+      `$1._storageKey=$2;let $3=$1;window.AcApSettingManager=$1;`
+    );
+    console.log('  [OK] 7A-2. Exposed window.AcApSettingManager.');
+  }
+
+  // 7B. Instant touch OSNAP Loupe & Crosshair (25ms instead of 500ms) + 38px magnetic OSNAP radius
+  const touchLoupeDelayRegex = /const ([A-Za-z0-9_$]+)=500,([A-Za-z0-9_$]+)=10,([A-Za-z0-9_$]+)=class ([A-Za-z0-9_$]+)\{constructor\(e\)\{this\.disposed=!1/;
+  if (touchLoupeDelayRegex.test(content)) {
+    content = content.replace(
+      touchLoupeDelayRegex,
+      `const $1=25,$2=48,$3=class $4{constructor(e){this.disposed=!1`
+    );
+    console.log('  [OK] 7B-1. Patched touch OSNAP Loupe delay from 500ms to 25ms (instant Loupe & Crosshair).');
+  }
+  const osnapRadiusRegex = /const ([A-Za-z0-9_$]+)=20,([A-Za-z0-9_$]+)=16,([A-Za-z0-9_$]+)=48,([A-Za-z0-9_$]+)=8,([A-Za-z0-9_$]+)=32;/;
+  if (osnapRadiusRegex.test(content)) {
+    content = content.replace(
+      osnapRadiusRegex,
+      `const $1=38,$2=32,$3=64,$4=12,$5=48;`
+    );
+    console.log('  [OK] 7B-2. Boosted OSNAP magnetic snap radius to 38px and intersection candidates to 32.');
+  }
+
+  // 7C. Localize live measurement & coordinate HUD panel labels to Vietnamese
+  const mobileLabelsRegex = /function ([A-Za-z0-9_$]+)\(\)\{const r=e=>[A-Za-z0-9_$]+\.t\(e\);return\{length:r\("main\.mobileCommand\.length"\),angle:r\("main\.mobileCommand\.angle"\),dx:r\("main\.mobileCommand\.dx"\),dy:r\("main\.mobileCommand\.dy"\),x:r\("main\.mobileCommand\.x"\),y:r\("main\.mobileCommand\.y"\),confirm:r\("main\.mobileCommand\.confirm"\),cancel:r\("main\.mobileCommand\.cancel"\),help:r\("main\.mobileCommand\.help"\),back:r\("main\.mobileCommand\.back"\),collapse:r\("main\.mobileCommand\.collapse"\),expand:r\("main\.mobileCommand\.expand"\)\}\}/;
+  if (mobileLabelsRegex.test(content)) {
+    content = content.replace(
+      mobileLabelsRegex,
+      `function $1(){return{length:"Dài:",angle:"Góc:",dx:"ΔX:",dy:"ΔY:",x:"X:",y:"Y:",confirm:"Xác nhận",cancel:"Hủy",help:"Trợ giúp",back:"Quay lại",collapse:"Thu gọn",expand:"Mở rộng"}}`
+    );
+    console.log('  [OK] 7C. Localized live measurement & coordinate HUD labels to Vietnamese.');
+  }
+
   fs.writeFileSync(filePath, content, 'utf8');
   console.log(`Saved ${file} (new size: ${content.length}).`);
 }

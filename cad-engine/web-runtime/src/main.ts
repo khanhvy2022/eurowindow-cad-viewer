@@ -61,6 +61,14 @@ declare global {
       startMeasureArea: () => void;
       clearMeasurements: () => void;
       switchToModelSpace: () => void;
+      executeCommand: (cmd: string) => void;
+      cancelCommand: () => void;
+      confirmCommand: () => void;
+      setOsnapModes: (mask: number) => void;
+      getOsnapModes: () => number;
+      setOrthoMode: (enabled: boolean) => void;
+      setActiveColor: (aciColor: number) => void;
+      showAllLayers: () => void;
     };
   }
 }
@@ -238,17 +246,35 @@ async function initViewer(containerId: string): Promise<boolean> {
     const dwgConverter = new AcDbLibreDwgMainThreadConverter();
     AcDbDatabaseConverterManager.instance.register(AcDbFileType.DWG, dwgConverter);
 
-    // 3. Initialize AcApDocManager with 100% layer & entity fidelity (drawNoPlotLayers: true, convertInvisibleLayers: true)
+    // 3. Pre-configure automatic precision OSNAP & touch loupe settings
+    try {
+      const defaultOsnapMask = 1 | 2 | 4 | 16 | 32 | 128 | 512; // EndPoint, MidPoint, Center, Quadrant, Intersection, Perpendicular, Nearest
+      const initialSettings = {
+        osnapModes: defaultOsnapMask,
+        useSimulatedMouseOnTouch: true,
+        hideTouchPointTutorial: true,
+        isShowCommandLine: false,
+        isShowToolbar: false,
+        isShowShortCutToolbar: false
+      };
+      localStorage.setItem('settings', JSON.stringify(initialSettings));
+      const sm = (window as any).AcApSettingManager?.instance;
+      if (sm && typeof sm.apply === 'function') {
+        sm.apply(initialSettings);
+      }
+    } catch (_) {}
+
+    // 4. Initialize AcApDocManager with Write mode (unlocks Draw, Modify, Dimension, Markup & Measure) and 100% layer/entity fidelity
     AcApDocManager.createInstance({
       container,
       autoResize: true,
       baseUrl: localBaseUrl,
       useMainThreadDraw: true,
-      disableExport: true,
+      disableExport: false,
       builtinOpenFileDialog: false,
       notificationCenter: false,
       openDocumentDefaults: () => ({
-        mode: AcEdOpenMode.Read,
+        mode: AcEdOpenMode.Write,
         drawNoPlotLayers: true,
         convertInvisibleLayers: true,
         minimumChunkSize: 10000,
@@ -348,7 +374,7 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
   }
 
   const options: any = {
-    mode: AcEdOpenMode.Read,
+    mode: AcEdOpenMode.Write,
     drawNoPlotLayers: true,
     convertInvisibleLayers: true,
     minimumChunkSize: 10000,
@@ -671,6 +697,118 @@ window.EurowindowBridge = {
       AcApDocManager.instance.sendStringToExecute('clearmeasurements');
     } catch (e) {
       console.warn('[Eurowindow CAD] clearMeasurements error:', e);
+    }
+  },
+  executeCommand: (cmd: string) => {
+    try {
+      const dm = AcApDocManager.instance as any;
+      const view = getActiveView();
+      try {
+        view?.editor?.cancelActiveInput?.();
+        dm?._commandManager?.cancelActive?.();
+      } catch (_) {}
+      setTimeout(() => {
+        try {
+          AcApDocManager.instance.sendStringToExecute(cmd);
+        } catch (err) {
+          console.warn('[Eurowindow CAD] sendStringToExecute error:', err);
+        }
+      }, 20);
+    } catch (e) {
+      console.warn('[Eurowindow CAD] executeCommand error:', e);
+    }
+  },
+  cancelCommand: () => {
+    try {
+      const cancelBtn = document.querySelector('.ml-mobile-cmd-cancel') as HTMLButtonElement | null;
+      if (cancelBtn && !cancelBtn.disabled) {
+        cancelBtn.click();
+      }
+      const dm = AcApDocManager.instance as any;
+      const view = getActiveView();
+      view?.editor?.cancelActiveInput?.();
+      dm?._commandManager?.cancelActive?.();
+      view?.selectionSet?.clear?.();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+    } catch (e) {
+      console.warn('[Eurowindow CAD] cancelCommand error:', e);
+    }
+  },
+  confirmCommand: () => {
+    try {
+      const confirmBtn = document.querySelector('.ml-mobile-cmd-confirm') as HTMLButtonElement | null;
+      if (confirmBtn && !confirmBtn.disabled) {
+        confirmBtn.click();
+        return;
+      }
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
+    } catch (e) {
+      console.warn('[Eurowindow CAD] confirmCommand error:', e);
+    }
+  },
+  setOsnapModes: (mask: number) => {
+    try {
+      const sm = (window as any).AcApSettingManager?.instance;
+      if (sm && typeof sm.set === 'function') {
+        sm.set('osnapModes', mask);
+      } else {
+        const raw = localStorage.getItem('settings');
+        const parsed = raw ? JSON.parse(raw) : {};
+        parsed.osnapModes = mask;
+        localStorage.setItem('settings', JSON.stringify(parsed));
+      }
+    } catch (e) {
+      console.warn('[Eurowindow CAD] setOsnapModes error:', e);
+    }
+  },
+  getOsnapModes: (): number => {
+    try {
+      const sm = (window as any).AcApSettingManager?.instance;
+      if (sm && typeof sm.get === 'function') {
+        return Number(sm.get('osnapModes')) || 703;
+      }
+    } catch (_) {}
+    return 703;
+  },
+  setOrthoMode: (enabled: boolean) => {
+    try {
+      const doc = AcApDocManager.instance.curDocument as any;
+      if (doc?.database) {
+        doc.database.orthomode = enabled ? 1 : 0;
+      }
+    } catch (e) {
+      console.warn('[Eurowindow CAD] setOrthoMode error:', e);
+    }
+  },
+  setActiveColor: (aciColor: number) => {
+    try {
+      AcApDocManager.instance.sendStringToExecute(`cecolor ${aciColor}`);
+      setTimeout(() => {
+        try {
+          AcApDocManager.instance.sendStringToExecute(`measurementcolor ${aciColor}`);
+        } catch (_) {}
+      }, 60);
+    } catch (e) {
+      console.warn('[Eurowindow CAD] setActiveColor error:', e);
+    }
+  },
+  showAllLayers: () => {
+    try {
+      const doc = AcApDocManager.instance.curDocument;
+      if (!doc || !doc.database) return;
+      const layerTable = doc.database.tables.layerTable as any;
+      if (layerTable && typeof layerTable.newIterator === 'function') {
+        for (const record of layerTable.newIterator()) {
+          record.isOff = false;
+        }
+      }
+      const view = getActiveView();
+      if (view) {
+        view.isDirty = true;
+        view.requestRender?.();
+      }
+    } catch (e) {
+      console.warn('[Eurowindow CAD] showAllLayers error:', e);
     }
   },
   switchToModelSpace: () => {

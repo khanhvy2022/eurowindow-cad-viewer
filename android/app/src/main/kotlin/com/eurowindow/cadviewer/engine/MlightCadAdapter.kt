@@ -131,6 +131,37 @@ class MlightCadAdapter(
         jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.clearMeasurements) window.EurowindowBridge.clearMeasurements();")
     }
 
+    fun executeCommand(cmd: String) {
+        val safeCmd = JSONObject.quote(cmd)
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.executeCommand) window.EurowindowBridge.executeCommand($safeCmd);")
+    }
+
+    fun cancelCommand() {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.cancelCommand) window.EurowindowBridge.cancelCommand();")
+    }
+
+    fun confirmCommand() {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.confirmCommand) window.EurowindowBridge.confirmCommand();")
+    }
+
+    fun setOsnapModes(mask: Int) {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.setOsnapModes) window.EurowindowBridge.setOsnapModes($mask);")
+    }
+
+    fun setOrthoMode(enabled: Boolean) {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.setOrthoMode) window.EurowindowBridge.setOrthoMode($enabled);")
+    }
+
+    fun setActiveColor(aciColor: Int) {
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.setActiveColor) window.EurowindowBridge.setActiveColor($aciColor);")
+    }
+
+    fun showAllLayers(): List<CadLayer> {
+        cachedLayers = cachedLayers.map { it.copy(isVisible = true) }
+        jsExecutor("if (window.EurowindowBridge && window.EurowindowBridge.showAllLayers) window.EurowindowBridge.showAllLayers();")
+        return cachedLayers
+    }
+
     override suspend fun getDrawingInfo(): DrawingInfo? {
         return currentDrawingInfo
     }
