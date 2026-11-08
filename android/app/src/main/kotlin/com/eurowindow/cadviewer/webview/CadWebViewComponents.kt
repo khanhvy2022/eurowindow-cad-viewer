@@ -251,9 +251,9 @@ fun configureCadWebView(
             databaseEnabled = true
             allowFileAccess = true
             allowContentAccess = true
-            // Disable wide viewport and overview mode so WebGL receives 1:1 touch/gesture events without WebView zoom interference
-            useWideViewPort = false
-            loadWithOverviewMode = false
+            // Enable viewport meta tag support so 100vw/100vh in index.html maps 1:1 to WebView container dimensions
+            useWideViewPort = true
+            loadWithOverviewMode = true
             setSupportZoom(false)
             builtInZoomControls = false
             displayZoomControls = false

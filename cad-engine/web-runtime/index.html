@@ -14,26 +14,47 @@
     html, body {
       margin: 0;
       padding: 0;
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
+      min-width: 100%;
+      min-height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       overflow: hidden;
       background-color: #121212;
       touch-action: none;
     }
     #cad-container {
-      width: 100%;
-      height: 100%;
-      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      min-width: 100%;
+      min-height: 100%;
+      position: fixed;
       top: 0;
       left: 0;
+      right: 0;
+      bottom: 0;
       touch-action: none;
+      overflow: hidden;
+    }
+    .ml-ui-simple-toolbar,
+    .ml-ui-simple-toolbar-host,
+    .ml-notification-center,
+    [class*="ml-ui-"],
+    [class*="notification-center"] {
+      display: none !important;
     }
     #loading-overlay {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
       background: #121212;
       display: flex;
       flex-direction: column;
@@ -47,6 +68,7 @@
     .spinner {
       width: 44px;
       height: 44px;
+      flex-shrink: 0;
       border: 4px solid rgba(144, 202, 249, 0.2);
       border-top-color: #90caf9;
       border-radius: 50%;
@@ -59,6 +81,8 @@
     #status-text {
       font-size: 14px;
       letter-spacing: 0.5px;
+      text-align: center;
+      padding: 0 24px;
     }
   </style>
 </head>

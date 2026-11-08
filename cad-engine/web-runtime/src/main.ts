@@ -29,7 +29,11 @@ import {
   AcApOpenViewMode,
   type AcApOpenDatabaseOptions
 } from '@mlightcad/cad-simple-viewer';
-import { AcDbDatabaseConverterManager, AcDbFileType } from '@mlightcad/data-model';
+import {
+  AcDbDatabaseConverterManager,
+  AcDbFileType,
+  acdbHostApplicationServices
+} from '@mlightcad/data-model';
 import { LibreDwg } from '@mlightcad/libredwg-web';
 import { AcDbLibreDwgMainThreadConverter } from '@mlightcad/libredwg-converter/node';
 
@@ -49,7 +53,8 @@ declare global {
       initViewer: (containerId: string) => Promise<boolean>;
       loadDrawingFromBase64: (fileName: string, base64Data: string) => Promise<boolean>;
       loadDrawingFromArrayBuffer: (fileName: string, buffer: ArrayBuffer) => Promise<boolean>;
-      zoomToFit: () => void;
+      zoomToFit: (toggleMode?: boolean) => Promise<void>;
+      onHostResize: (widthCssPx?: number, heightCssPx?: number) => void;
       getLayers: () => Array<{ id: string; name: string; isOff: boolean; color: number }>;
       setLayerVisibility: (layerName: string, visible: boolean) => void;
       closeDrawing: () => Promise<void>;
@@ -57,13 +62,84 @@ declare global {
       startMeasureDistance: () => void;
       startMeasureArea: () => void;
       clearMeasurements: () => void;
+      switchToModelSpace: () => void;
     };
   }
 }
 
 let isInitialized = false;
+let preferOverviewStrip = false;
+
+function getActiveView(): any {
+  try {
+    const dm = AcApDocManager.instance as any;
+    return dm?.curView ?? dm?.context?.view ?? dm?.mainView ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function ensureNonZeroContainerSize(container: HTMLElement, explicitW?: number, explicitH?: number) {
+  const fallbackW = Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0, window.screen?.width || 360, 320);
+  const fallbackH = Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, (window.screen?.height || 760) - 120, 480);
+  const targetW = explicitW && explicitW > 10 ? Math.floor(explicitW) : fallbackW;
+  const targetH = explicitH && explicitH > 10 ? Math.floor(explicitH) : fallbackH;
+
+  if (explicitW && explicitH && explicitW > 10 && explicitH > 10) {
+    container.style.width = `${targetW}px`;
+    container.style.height = `${targetH}px`;
+  } else if (container.clientWidth <= 10 || container.clientHeight <= 10) {
+    container.style.width = `${targetW}px`;
+    container.style.height = `${targetH}px`;
+  }
+}
+
+function onHostResize(widthCssPx?: number, heightCssPx?: number) {
+  try {
+    const container = document.getElementById('cad-container');
+    if (container) {
+      ensureNonZeroContainerSize(container, widthCssPx, heightCssPx);
+    }
+    const view = getActiveView();
+    if (view) {
+      view.onWindowResize?.();
+      view.isDirty = true;
+      view.requestRender?.();
+    }
+  } catch (e) {
+    console.warn('[Eurowindow CAD] onHostResize error:', e);
+  }
+}
+
+function ensureBestSpace(doc: any) {
+  try {
+    const db = doc?.database;
+    const modelSpace = db?.tables?.blockTable?.modelSpace;
+    if (!db || !modelSpace) return;
+    if (db.currentSpaceId !== modelSpace.objectId) {
+      const modelCount = typeof modelSpace.newIterator === 'function' ? modelSpace.newIterator().count : 0;
+      const curBtr = db.tables.blockTable.getIdAt(db.currentSpaceId);
+      const curCount = curBtr && typeof curBtr.newIterator === 'function' ? curBtr.newIterator().count : 0;
+      if (modelCount > 0 && curCount <= 2) {
+        console.log(`[Eurowindow CAD] Auto-switching from empty Paper Space (${curCount}) to Model Space (${modelCount} entities)`);
+        acdbHostApplicationServices().layoutManager.setCurrentLayoutBtrId(modelSpace.objectId, db);
+        const view = getActiveView();
+        if (view) {
+          view.activeLayoutBtrId = modelSpace.objectId;
+        }
+      }
+    }
+  } catch (errLayout) {
+    console.warn('[Eurowindow CAD] Layout check:', errLayout);
+  }
+}
 
 async function initViewer(containerId: string): Promise<boolean> {
+  if (isInitialized) {
+    onHostResize();
+    return true;
+  }
+
   const container = document.getElementById(containerId) as HTMLDivElement;
   if (!container) {
     console.error('Container not found:', containerId);
@@ -71,6 +147,8 @@ async function initViewer(containerId: string): Promise<boolean> {
   }
 
   try {
+    ensureNonZeroContainerSize(container);
+
     const origin = (typeof window !== 'undefined' ? window.location.origin : 'https://cad.eurowindow.local');
     const localBaseUrl = origin + '/cad-data';
     const wasmDir = `${origin}/assets/web-runtime/workers`;
@@ -90,7 +168,7 @@ async function initViewer(containerId: string): Promise<boolean> {
       }
     }
 
-    // 2. Register main-thread DWG converter (eliminates mobile Web Worker CORS/isolation restrictions)
+    // 2. Register main-thread DWG converter
     const dwgConverter = new AcDbLibreDwgMainThreadConverter();
     AcDbDatabaseConverterManager.instance.register(AcDbFileType.DWG, dwgConverter);
 
@@ -101,6 +179,8 @@ async function initViewer(containerId: string): Promise<boolean> {
       baseUrl: localBaseUrl,
       useMainThreadDraw: true,
       disableExport: true,
+      builtinOpenFileDialog: false,
+      notificationCenter: false,
       openDocumentDefaults: () => ({
         mode: AcEdOpenMode.Read,
         drawNoPlotLayers: false,
@@ -109,57 +189,35 @@ async function initViewer(containerId: string): Promise<boolean> {
       webworkerFileUrls: {
         mtextRender: './workers/mtext-renderer-worker.js'
       }
-    });
+    } as any);
 
     AcApDocManager.instance.events.documentActivated.addEventListener(args => {
       console.log('[Eurowindow CAD] Document activated:', args.doc.docTitle);
+      preferOverviewStrip = false;
       hideLoadingOverlay();
-      
-      // Auto-switch to Model Space if opened into an empty Paper Space
-      try {
-        const doc = args.doc;
-        const modelSpace = doc.database?.tables?.blockTable?.modelSpace;
-        if (modelSpace && doc.database.currentSpaceId !== modelSpace.objectId && modelSpace.entities.length > 0) {
-          console.log('[Eurowindow CAD] Auto-switching from Paper Space to Model Space (' + modelSpace.entities.length + ' entities)');
-          (AcApDocManager.instance as any).layoutManager?.setCurrentLayoutBtrId(modelSpace.objectId);
-        }
-      } catch (errLayout) {
-        console.warn('[Eurowindow CAD] Layout check:', errLayout);
-      }
-
+      ensureBestSpace(args.doc);
       sendDocumentLoaded();
-      
-      // Schedule progressive framing passes
-      setTimeout(() => zoomToFit(), 150);
-      setTimeout(() => zoomToFit(), 600);
-      setTimeout(() => zoomToFit(), 1200);
+
+      // Progressive framing passes (immediate + after geometry/glyph batches flush)
+      setTimeout(() => { zoomToFit(false); }, 100);
+      setTimeout(() => { zoomToFit(false); }, 700);
     });
 
     // Attach ResizeObserver to keep canvas sized to Android WebView container
     if (typeof ResizeObserver !== 'undefined') {
       const ro = new ResizeObserver(() => {
-        try {
-          const curDoc = AcApDocManager.instance.curDocument;
-          if (curDoc && curDoc.view) {
-            (curDoc.view as any).onWindowResize();
-          }
-        } catch (_) {}
+        onHostResize();
       });
       ro.observe(container);
     }
     window.addEventListener('resize', () => {
-      try {
-        const curDoc = AcApDocManager.instance.curDocument;
-        if (curDoc && curDoc.view) {
-          (curDoc.view as any).onWindowResize();
-        }
-      } catch (_) {}
+      onHostResize();
     });
 
     (window as any).AcApDocManager = AcApDocManager;
     isInitialized = true;
-    console.log('[Eurowindow CAD] Viewer initialized successfully with Direct DWG + DXF support.');
-    
+    console.log(`[Eurowindow CAD] Viewer initialized (${container.clientWidth}x${container.clientHeight}).`);
+
     hideLoadingOverlay();
 
     if (window.AndroidBridge && typeof window.AndroidBridge.onViewerReady === 'function') {
@@ -203,11 +261,11 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
     await initViewer('cad-container');
   }
 
+  onHostResize();
   showLoadingOverlay(`Đang nạp và giải mã bản vẽ: ${fileName}...`);
 
   const ext = fileName.toLowerCase().split('.').pop();
   if (ext === 'dwg') {
-    // Ensure WASM instance is ready before parsing DWG
     try {
       const origin = (typeof window !== 'undefined' ? window.location.origin : 'https://cad.eurowindow.local');
       await LibreDwg.create(`${origin}/assets/web-runtime/workers`);
@@ -227,8 +285,8 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
     if (!success) {
       throw new Error(`Không thể giải mã dữ liệu bản vẽ: ${fileName}`);
     }
-    setTimeout(() => { zoomToFit(); }, 200);
-    setTimeout(() => { zoomToFit(); }, 700);
+    hideLoadingOverlay();
+    await zoomToFit(false);
     return true;
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -246,26 +304,71 @@ async function loadDrawingFromBase64(fileName: string, base64Data: string): Prom
   return loadDrawingFromArrayBuffer(fileName, buffer);
 }
 
-async function zoomToFit(): Promise<void> {
-  try {
-    const curDoc = AcApDocManager.instance.curDocument;
-    if (curDoc && curDoc.view) {
-      // Ensure canvas size is synchronized with container
-      try {
-        (curDoc.view as any).onWindowResize();
-      } catch (_) {}
+function applyReadableMobileBox(view: any, box: any, useOverview: boolean) {
+  if (!box || !box.min || !box.max) return false;
+  const w = box.max.x - box.min.x;
+  const h = box.max.y - box.min.y;
+  if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return false;
 
-      // Try smart extents first (focuses on the actual CAD geometry cluster, ignoring (0,0) outliers)
-      if (typeof (curDoc.view as any).zoomToSmartExtents === 'function') {
-        try {
-          await (curDoc.view as any).zoomToSmartExtents(1000);
-          curDoc.view.requestRender?.();
-          return;
-        } catch (_) {}
+  // When a shop drawing consists of many sheets arranged in a wide horizontal strip (w > h * 2.5),
+  // fitting all sheets at once on a narrow portrait phone makes the strip tiny.
+  // In default sheet focus mode, frame the leftmost 1-2 sheets so details are immediately large and readable;
+  // tapping "Vừa khung" toggles between Sheet Focus and Full Strip Overview.
+  if (!useOverview && w > h * 2.5) {
+    const focusW = Math.min(w, Math.max(h * 1.75, w / 3.5));
+    const focusedBox = typeof box.clone === 'function' ? box.clone() : new box.constructor();
+    if (focusedBox && focusedBox.min && focusedBox.max) {
+      focusedBox.min.x = box.min.x;
+      focusedBox.min.y = box.min.y;
+      focusedBox.max.x = box.min.x + focusW;
+      focusedBox.max.y = box.max.y;
+      view.zoomTo(focusedBox, 1.06);
+      view.isDirty = true;
+      view.requestRender?.();
+      return true;
+    }
+  }
+
+  view.zoomTo(box, 1.06);
+  view.isDirty = true;
+  view.requestRender?.();
+  return true;
+}
+
+async function zoomToFit(toggleMode = true): Promise<void> {
+  try {
+    const container = document.getElementById('cad-container');
+    if (container) {
+      ensureNonZeroContainerSize(container);
+    }
+    const view = getActiveView();
+    if (!view) return;
+
+    if (toggleMode) {
+      preferOverviewStrip = !preferOverviewStrip;
+    }
+
+    try {
+      view.onWindowResize?.();
+    } catch (_) {}
+
+    // 1. Immediate raw extents framing
+    try {
+      const rawBox = view.getDrawingExtents?.();
+      if (!applyReadableMobileBox(view, rawBox, preferOverviewStrip)) {
+        view.zoomToFitDrawing?.(0);
       }
-      
-      curDoc.view.zoomToFitDrawing();
-      curDoc.view.requestRender?.();
+    } catch (_) {}
+
+    // 2. Smart extents framing (waits for entity conversion and filters out (0,0) outliers)
+    if (typeof view.zoomToSmartExtents === 'function') {
+      try {
+        await view.zoomToSmartExtents(0);
+        const smartBox = view._scene?.activeLayout?.cachedSmartExtents ?? (await view.resolveSmartFitBox?.());
+        if (smartBox) {
+          applyReadableMobileBox(view, smartBox, preferOverviewStrip);
+        }
+      } catch (_) {}
     }
   } catch (e) {
     console.warn('[Eurowindow CAD] zoomToFit error:', e);
@@ -305,7 +408,11 @@ function setLayerVisibility(layerName: string, visible: boolean): void {
     const layer = doc.database.tables.layerTable.getAt(layerName);
     if (layer) {
       layer.isOff = !visible;
-      doc.view?.requestRender?.();
+      const view = getActiveView();
+      if (view) {
+        view.isDirty = true;
+        view.requestRender?.();
+      }
     }
   } catch (e) {
     console.warn('[Eurowindow CAD] setLayerVisibility error:', e);
@@ -366,6 +473,7 @@ window.EurowindowBridge = {
   loadDrawingFromBase64,
   loadDrawingFromArrayBuffer,
   zoomToFit,
+  onHostResize,
   getLayers,
   setLayerVisibility,
   closeDrawing,
@@ -394,10 +502,39 @@ window.EurowindowBridge = {
   switchToModelSpace: () => {
     try {
       const doc = AcApDocManager.instance.curDocument;
-      if (!doc || !doc.database) return;
-      const modelSpaceId = doc.database.tables.blockTable.modelSpace.objectId;
-      (AcApDocManager.instance as any).layoutManager?.setCurrentLayoutBtrId(modelSpaceId);
-      setTimeout(() => zoomToFit(), 300);
+      const view = getActiveView();
+      if (!doc || !doc.database || !view) return;
+      const db = doc.database;
+      const modelSpace = db.tables.blockTable.modelSpace;
+      if (!modelSpace) return;
+
+      if (view.activeLayoutBtrId !== modelSpace.objectId) {
+        acdbHostApplicationServices().layoutManager.setCurrentLayoutBtrId(modelSpace.objectId, db);
+        view.activeLayoutBtrId = modelSpace.objectId;
+      } else {
+        const layoutDict = (db.objects as any)?.layout;
+        let switched = false;
+        if (layoutDict && typeof layoutDict.newIterator === 'function') {
+          for (const layout of layoutDict.newIterator()) {
+            const btrId = layout.blockTableRecordId;
+            if (btrId && btrId !== modelSpace.objectId) {
+              const btr = db.tables.blockTable.getIdAt(btrId);
+              const count = btr && typeof btr.newIterator === 'function' ? btr.newIterator().count : 0;
+              if (count > 1) {
+                acdbHostApplicationServices().layoutManager.setCurrentLayoutBtrId(btrId, db);
+                view.activeLayoutBtrId = btrId;
+                switched = true;
+                break;
+              }
+            }
+          }
+        }
+        if (!switched) {
+          view.activeLayoutBtrId = modelSpace.objectId;
+        }
+      }
+      view.isDirty = true;
+      setTimeout(() => { zoomToFit(false); }, 150);
     } catch (e) {
       console.warn('[Eurowindow CAD] switchToModelSpace error:', e);
     }

@@ -4,9 +4,11 @@ import android.net.Uri
 import android.webkit.WebView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -78,7 +80,6 @@ fun ViewerScreen(
             isLoadingDrawing = false
             if (openResult.isSuccess) {
                 layersList = adapter.getLayers()
-                adapter.zoomToFit()
             } else {
                 val exMsg = openResult.exceptionOrNull()?.message ?: "Lỗi khi mở bản vẽ"
                 errorMessage = if (exMsg.contains("Permission Denial", ignoreCase = true)) {
@@ -123,7 +124,7 @@ fun ViewerScreen(
                 actions = {
                     // Zoom to fit button
                     IconButton(onClick = { coroutineScope.launch { adapter.zoomToFit() } }) {
-                        Text(text = "⛶", color = Color(0xFF90CAF9), fontSize = 20.sp)
+                        Text(text = "🔍", color = Color(0xFF90CAF9), fontSize = 18.sp)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1E1E1E))
@@ -140,6 +141,25 @@ fun ViewerScreen(
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
                     WebView(ctx).also { wv ->
+                        wv.layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        wv.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+                            val wPx = right - left
+                            val hPx = bottom - top
+                            if (wPx > 0 && hPx > 0 && (wPx != oldRight - oldLeft || hPx != oldBottom - oldTop)) {
+                                val density = v.resources.displayMetrics.density.coerceAtLeast(1f)
+                                val wCss = (wPx / density).toInt()
+                                val hCss = (hPx / density).toInt()
+                                wv.post {
+                                    wv.evaluateJavascript(
+                                        "if (window.EurowindowBridge && window.EurowindowBridge.onHostResize) { window.EurowindowBridge.onHostResize($wCss, $hCss); }",
+                                        null
+                                    )
+                                }
+                            }
+                        }
                         webViewRef = wv
                         configureCadWebView(
                             webView = wv,
@@ -156,7 +176,7 @@ fun ViewerScreen(
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                    .padding(bottom = 16.dp, start = 12.dp, end = 12.dp)
                     .clip(RoundedCornerShape(32.dp)),
                 color = Color(0xEB212121),
                 tonalElevation = 8.dp,
@@ -164,8 +184,9 @@ fun ViewerScreen(
             ) {
                 Row(
                     modifier = Modifier
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 1. Khoảng cách (Distance)
@@ -216,7 +237,7 @@ fun ViewerScreen(
 
                     // 5. Fit màn hình (Smart Extents Fit)
                     CadToolbarButton(
-                        icon = "⛶",
+                        icon = "🔍",
                         label = "Vừa khung",
                         isSelected = false,
                         onClick = {
@@ -396,13 +417,15 @@ private fun CadToolbarButton(
         color = if (isSelected) Color(0xFF1976D2) else Color.Transparent
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = icon, fontSize = 16.sp)
+            Text(text = icon, fontSize = 15.sp, maxLines = 1, softWrap = false)
             Text(
                 text = label,
                 fontSize = 10.sp,
+                maxLines = 1,
+                softWrap = false,
                 color = if (isSelected) Color.White else Color(0xFFB0BEC5),
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
             )
