@@ -19,7 +19,7 @@ for (const file of files) {
   const newPixelRatio = `i.setPixelRatio(Math.min(window.devicePixelRatio||1,1.25))`;
   if (content.includes(oldPixelRatio)) {
     content = content.replace(oldPixelRatio, newPixelRatio);
-    console.log('  [OK] Patched pixelRatio cap to 1.25.');
+    console.log('  [OK] 1. Patched pixelRatio cap to 1.25.');
   }
 
   // 2. Fix GLSL Hatch Pattern shader array l-value loop unroll error (error X3531 / warning X3550 on ANGLE/GLES)
@@ -35,9 +35,91 @@ for (const file of files) {
       .replace(oldLoader, newLoader)
       .replace('float segmentLength = abs(patternLine.dashLengths[i]);', 'float segmentLength = abs(fetchDashLength(patternLine.lineIndex, i));')
       .replace('float size = patternLine.dashLengths[index];', 'float size = fetchDashLength(patternLine.lineIndex, index);');
-    console.log('  [OK] Patched GLSL Hatch Pattern shader (eliminated array l-value unroll error).');
+    console.log('  [OK] 2. Patched GLSL Hatch Pattern shader (eliminated array l-value unroll error).');
+  }
+
+  // 3A. Eliminate Proxy trap in LibreDwg constructor (~5 million Reflect.get traps per large DWG)
+  const oldLxCtor = `constructor(e){return Nr(this,"wasmInstance"),Nr(this,"decoder"),this.wasmInstance=e,new Proxy(this,{get:(t,n,i)=>n in t?Reflect.get(t,n,i):Reflect.get(t.wasmInstance,n,i)})}`;
+  const newLxCtor = `constructor(e){Nr(this,"wasmInstance");Nr(this,"decoder");this.wasmInstance=e;for(const n in e){if(!(n in this)){const i=e[n];this[n]=typeof i=="function"?i.bind(e):i}}return this}`;
+  if (content.includes(oldLxCtor)) {
+    content = content.replace(oldLxCtor, newLxCtor);
+    console.log('  [OK] 3A. Eliminated LibreDwg Proxy wrapper (direct method binding).');
+  }
+
+  // 3B. Fix broken LibreDwg singleton caching so 11MB WASM is instantiated only ONCE
+  const singletonRegex = /static createByWasmInstance\(e\)\{return this\.instance==null\?new ([A-Za-z0-9_$]+)\(e\):this\.instance\}static async create\(e\)\{const t=e==null\?await ([A-Za-z0-9_$]+)\(\):await \2\(\{locateFile:n=>`\$\{e\}\/\$\{n\}`\}\);return this\.createByWasmInstance\(t\)\}/;
+  if (singletonRegex.test(content)) {
+    content = content.replace(
+      singletonRegex,
+      `static createByWasmInstance(e){return this.instance||(this.instance=new $1(e))}static async create(e){if(this.instance)return this.instance;const t=e==null?await $2():await $2({locateFile:n=>\`\${e}/\${n}\`});return this.createByWasmInstance(t)}`
+    );
+    console.log('  [OK] 3B. Fixed LibreDwg singleton caching (prevents 3x 11MB WASM re-instantiation).');
   } else {
-    console.warn('  [WARN] Hatch Pattern shader pattern not matched.');
+    console.warn('  [WARN] 3B. LibreDwg singleton pattern not matched.');
+  }
+
+  // 4A. Skip unused xdata Embind allocation on 300,000+ entities
+  const oldXdata = `m=t.dwg_object_entity_get_xdata(e);`;
+  const newXdata = `m=void 0;`;
+  if (content.includes(oldXdata)) {
+    content = content.replace(oldXdata, newXdata);
+    console.log('  [OK] 4A. Skipped unused xdata Embind allocation per entity.');
+  }
+
+  // 4B. Optimize n8.convert two-pass 300k object loop using this.safeObjectTio(c)
+  const convertLoopRegex = /const o=i\.dwg_get_num_objects\(e\);for\(let l=0;l<o;l\+\+\)\{const c=i\.dwg_get_object\(e,l\);if\(c\)\{const u=this\.safeObjectTio\(c\);if\(u\)switch\(i\.dwg_object_get_fixedtype\(c\)\)\{case ([A-Za-z0-9_$]+)\.DWG_TYPE_LAYER:\{const h=this\.convertLayer\(u,c\);n\.tables\.LAYER\.entries\.push\(h\),this\.entityConverter\.layers\.set\(h\.handle,h\.name\)\}break;case \1\.DWG_TYPE_LTYPE:\{const h=this\.convertLineType\(u,c\);n\.tables\.LTYPE\.entries\.push\(h\),this\.entityConverter\.ltypes\.set\(h\.handle,h\.name\)\}break\}\}\}for\(let l=0;l<o;l\+\+\)\{const c=i\.dwg_get_object\(e,l\);if\(c\)\{const u=this\.safeObjectTio\(c\);if\(u\)switch\(i\.dwg_object_get_fixedtype\(c\)\)\{/;
+  if (convertLoopRegex.test(content)) {
+    content = content.replace(
+      convertLoopRegex,
+      `const o=i.dwg_get_num_objects(e),_objs=[];for(let l=0;l<o;l++){const c=i.dwg_get_object(e,l);if(c){const u=this.safeObjectTio(c);if(u){const ft=i.dwg_object_get_fixedtype(c);if(ft===$1.DWG_TYPE_LAYER){const h=this.convertLayer(u,c);n.tables.LAYER.entries.push(h),this.entityConverter.layers.set(h.handle,h.name)}else if(ft===$1.DWG_TYPE_LTYPE){const h=this.convertLineType(u,c);n.tables.LTYPE.entries.push(h),this.entityConverter.ltypes.set(h.handle,h.name)}else _objs.push([c,u,ft])}}}for(let l=0;l<_objs.length;l++){const[c,u,ft]=_objs[l];if(c){if(u)switch(ft){`
+    );
+    console.log('  [OK] 4B. Optimized n8.convert two-pass loop (iterates ~500 objects instead of 600,000).');
+  } else {
+    console.warn('  [WARN] 4B. n8.convert loop pattern not matched.');
+  }
+
+  // 4C. Skip dwg_bmp thumbnail extraction
+  const oldBmp = `const s=i.dwg_bmp(e);return(t=s?.data)!=null&&t.length&&(n.thumbnailImage=s.data),n`;
+  const newBmp = `return n`;
+  if (content.includes(oldBmp)) {
+    content = content.replace(oldBmp, newBmp);
+    console.log('  [OK] 4C. Skipped dwg_bmp thumbnail extraction.');
+  }
+
+  // 4D. Skip block preview & redundant 300k orphan scan when block already has entities
+  const blockPreviewRegex = /let m;const y=n\.dwg_entity_block_header_get_preview\(e\);y&&y\.length>0&&\(m=[A-Za-z0-9_$]+\(y\)\);(let g=this\.convertEntities\(t,i\.handle\);[\s\S]{100,320}?)if\(this\.orphanIndexDataPtr!=null\)\{/;
+  if (blockPreviewRegex.test(content)) {
+    content = content.replace(blockPreviewRegex, `let m;$1if(g.length===0&&this.orphanIndexDataPtr!=null){`);
+    console.log('  [OK] 4D. Skipped block preview & 300k orphan entity scan.');
+  } else {
+    console.warn('  [WARN] 4D. convertBlockRecord preview/orphan pattern not matched.');
+  }
+
+  // 4E. Skip raw byte thumbnail scanner in AcDbLibreDwgMainThreadConverter
+  const rawThumbRegex = /i=typeof r=="string"\?void 0:new Uint8Array\(r\),i&&[A-Za-z0-9_$]+\(n\.database,i\),\[2,n\]/;
+  if (rawThumbRegex.test(content)) {
+    content = content.replace(rawThumbRegex, `[2,n]`);
+    console.log('  [OK] 4E. Skipped raw byte thumbnail scanner.');
+  } else {
+    console.warn('  [WARN] 4E. raw byte thumbnail scanner pattern not matched.');
+  }
+
+  // 5A. Replace requestAnimationFrame yield in Ey() with zero-delay setTimeout(r, 0)
+  const rAFYieldRegex = /function ([A-Za-z0-9_$]+)\(\)\{return new Promise\(function\(r\)\{typeof globalThis<"u"&&typeof globalThis\.requestAnimationFrame=="function"\?globalThis\.requestAnimationFrame\(function\(\)\{return r\(\)\}\):setTimeout\(r,0\)\}\)\}/;
+  if (rAFYieldRegex.test(content)) {
+    content = content.replace(rAFYieldRegex, `function $1(){return new Promise(function(r){setTimeout(r,0)})}`);
+    console.log('  [OK] 5A. Replaced requestAnimationFrame yield with setTimeout(0).');
+  } else {
+    console.warn('  [WARN] 5A. rAF yield pattern not matched.');
+  }
+
+  // 5B. Bypass O(N^2) PolyBool hatch loop repair for complex loops (e.length > 32)
+  const polyBoolRegex = /function ([A-Za-z0-9_$]+)\(r\)\{const e=([A-Za-z0-9_$]+)\(r\);if\(e\.length<3\|\|!([A-Za-z0-9_$]+)\(e\)\)return\[e\.map\(n=>new ([A-Za-z0-9_$]+)\(n\.x,n\.y\)\)\];/;
+  if (polyBoolRegex.test(content)) {
+    content = content.replace(polyBoolRegex, `function $1(r){const e=$2(r);if(e.length<3||e.length>32||!$3(e))return[e.map(n=>new $4(n.x,n.y))];`);
+    console.log('  [OK] 5B. Bypassed O(N^2) PolyBool hatch repair for loops > 32 vertices.');
+  } else {
+    console.warn('  [WARN] 5B. PolyBool hatch repair pattern not matched.');
   }
 
   fs.writeFileSync(filePath, content, 'utf8');

@@ -5,7 +5,6 @@ if (typeof window !== 'undefined') {
     const urlStr = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     if (urlStr.includes('cdn.jsdelivr.net/gh/mlightcad/cad-data')) {
       const localUrl = urlStr.replace(/^https:\/\/cdn\.jsdelivr\.net\/gh\/mlightcad\/cad-data/, window.location.origin + '/cad-data');
-      console.log(`[Offline Guard] Redirecting CDN fetch: ${urlStr} -> ${localUrl}`);
       return originalFetch.call(window, localUrl, init);
     }
     return originalFetch.call(window, input, init);
@@ -16,7 +15,6 @@ if (typeof window !== 'undefined') {
     const urlStr = String(url);
     if (urlStr.includes('cdn.jsdelivr.net/gh/mlightcad/cad-data')) {
       const localUrl = urlStr.replace(/^https:\/\/cdn\.jsdelivr\.net\/gh\/mlightcad\/cad-data/, window.location.origin + '/cad-data');
-      console.log(`[Offline Guard] Redirecting CDN XHR: ${urlStr} -> ${localUrl}`);
       return originalOpen.call(this, method, localUrl, ...rest);
     }
     return originalOpen.call(this, method, url, ...rest);
@@ -69,6 +67,7 @@ declare global {
 
 let isInitialized = false;
 let preferOverviewStrip = false;
+let currentLoadingFileName = '';
 
 function getActiveView(): any {
   try {
@@ -134,6 +133,26 @@ function ensureBestSpace(doc: any) {
   }
 }
 
+function attachDatabaseProgress(doc: any) {
+  try {
+    const db = doc?.database;
+    if (!db?.events?.openProgress) return;
+    db.events.openProgress.addEventListener((ev: any) => {
+      const pct = Math.max(0, Math.min(100, Math.round(ev.percentage ?? 0)));
+      const stageLabel = ev.stage === 'PARSE'
+        ? 'Đang giải mã cấu trúc DWG'
+        : ev.subStage === 'FONT'
+        ? 'Đang nạp phông chữ CAD'
+        : ev.subStage === 'ENTITY'
+        ? 'Đang dựng hình học CAD'
+        : 'Đang xử lý dữ liệu bản vẽ';
+      const msg = `${stageLabel}: ${pct}% (${currentLoadingFileName || 'Bản vẽ'})`;
+      updateLoadingText(msg);
+      window.AndroidBridge?.onProgress?.(pct, msg);
+    });
+  } catch (_) {}
+}
+
 async function initViewer(containerId: string): Promise<boolean> {
   if (isInitialized) {
     onHostResize();
@@ -153,7 +172,7 @@ async function initViewer(containerId: string): Promise<boolean> {
     const localBaseUrl = origin + '/cad-data';
     const wasmDir = `${origin}/assets/web-runtime/workers`;
 
-    // 1. Initialize LibreDwg WebAssembly on the main thread
+    // 1. Pre-initialize LibreDwg WebAssembly singleton on the main thread
     console.log('[Eurowindow CAD] Pre-initializing LibreDwg WASM from:', wasmDir);
     try {
       await LibreDwg.create(wasmDir);
@@ -172,7 +191,7 @@ async function initViewer(containerId: string): Promise<boolean> {
     const dwgConverter = new AcDbLibreDwgMainThreadConverter();
     AcDbDatabaseConverterManager.instance.register(AcDbFileType.DWG, dwgConverter);
 
-    // 3. Initialize AcApDocManager
+    // 3. Initialize AcApDocManager with large chunk sizes and progressive rendering
     AcApDocManager.createInstance({
       container,
       autoResize: true,
@@ -184,6 +203,8 @@ async function initViewer(containerId: string): Promise<boolean> {
       openDocumentDefaults: () => ({
         mode: AcEdOpenMode.Read,
         drawNoPlotLayers: false,
+        minimumChunkSize: 10000,
+        progressiveRendering: true,
         openViewMode: AcApOpenViewMode.Extents
       }),
       webworkerFileUrls: {
@@ -191,16 +212,27 @@ async function initViewer(containerId: string): Promise<boolean> {
       }
     } as any);
 
+    const dm = AcApDocManager.instance as any;
+    if (dm?.curDocument) {
+      attachDatabaseProgress(dm.curDocument);
+    }
+    dm?.events?.documentCreated?.addEventListener?.((args: any) => {
+      if (args?.doc) attachDatabaseProgress(args.doc);
+    });
+
     AcApDocManager.instance.events.documentActivated.addEventListener(args => {
       console.log('[Eurowindow CAD] Document activated:', args.doc.docTitle);
       preferOverviewStrip = false;
-      hideLoadingOverlay();
       ensureBestSpace(args.doc);
+      hideLoadingOverlay();
+      try {
+        getActiveView()?.endProgressiveOpenFit?.();
+      } catch (_) {}
+      zoomToFit(false);
       sendDocumentLoaded();
 
-      // Progressive framing passes (immediate + after geometry/glyph batches flush)
-      setTimeout(() => { zoomToFit(false); }, 100);
-      setTimeout(() => { zoomToFit(false); }, 700);
+      // Re-frame once more after deferred text/block geometry settles
+      setTimeout(() => { zoomToFit(false); }, 600);
     });
 
     // Attach ResizeObserver to keep canvas sized to Android WebView container
@@ -241,6 +273,11 @@ function showLoadingOverlay(msg: string) {
   if (text) text.textContent = msg;
 }
 
+function updateLoadingText(msg: string) {
+  const text = document.getElementById('status-text');
+  if (text) text.textContent = msg;
+}
+
 function hideLoadingOverlay() {
   const overlay = document.getElementById('loading-overlay');
   if (overlay) overlay.style.display = 'none';
@@ -261,22 +298,20 @@ async function loadDrawingFromArrayBuffer(fileName: string, buffer: ArrayBuffer)
     await initViewer('cad-container');
   }
 
+  currentLoadingFileName = fileName;
   onHostResize();
-  showLoadingOverlay(`Đang nạp và giải mã bản vẽ: ${fileName}...`);
+  showLoadingOverlay(`Đang giải mã bản vẽ: ${fileName}...`);
 
-  const ext = fileName.toLowerCase().split('.').pop();
-  if (ext === 'dwg') {
-    try {
-      const origin = (typeof window !== 'undefined' ? window.location.origin : 'https://cad.eurowindow.local');
-      await LibreDwg.create(`${origin}/assets/web-runtime/workers`);
-    } catch (e) {
-      console.warn('[Eurowindow CAD] Pre-parse LibreDwg check:', e);
-    }
+  const dm = AcApDocManager.instance as any;
+  if (dm?.curDocument) {
+    attachDatabaseProgress(dm.curDocument);
   }
 
-  const options: AcApOpenDatabaseOptions = {
+  const options: any = {
     mode: AcEdOpenMode.Read,
     drawNoPlotLayers: false,
+    minimumChunkSize: 10000,
+    progressiveRendering: true,
     openViewMode: AcApOpenViewMode.Extents
   };
 
@@ -304,6 +339,99 @@ async function loadDrawingFromBase64(fileName: string, base64Data: string): Prom
   return loadDrawingFromArrayBuffer(fileName, buffer);
 }
 
+/**
+ * Fast synchronous (< 2ms) outlier-filtered bounding box calculation using the top-level
+ * spatial index items of the active layout. Filters out stray (0,0) reference markers or
+ * distant construction points without waiting 10+ seconds for background text glyph triangulation.
+ */
+function computeFastSmartExtents(view: any): any {
+  try {
+    try {
+      view?.endProgressiveOpenFit?.();
+    } catch (_) {}
+    const activeLayout = view?._scene?.activeLayout;
+    if (activeLayout?.cachedSmartExtents) {
+      return activeLayout.cachedSmartExtents;
+    }
+    const items = activeLayout?._spatialIndex?.rootIndex?.all?.();
+    if (Array.isArray(items) && items.length >= 4) {
+      // Filter finite boxes
+      let boxes: Array<{ minX: number; minY: number; maxX: number; maxY: number }> = [];
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (!it || !Number.isFinite(it.minX) || !Number.isFinite(it.minY) || !Number.isFinite(it.maxX) || !Number.isFinite(it.maxY)) continue;
+        boxes.push(it);
+      }
+
+      // Gap-based outlier pruning along axis ('x' or 'y') matching MLightCAD u6/l2e
+      const pruneGap = (arr: typeof boxes, axis: 'x' | 'y') => {
+        if (arr.length < 8) return arr;
+        const pts = arr.map(p => ({
+          val: axis === 'x' ? 0.5 * (p.minX + p.maxX) : 0.5 * (p.minY + p.maxY),
+          box: p
+        })).sort((a, b) => a.val - b.val);
+        const span = pts[pts.length - 1].val - pts[0].val;
+        if (!(span > 0)) return arr;
+
+        let maxGap = 0, splitIdx = 0;
+        for (let i = 1; i < pts.length; i++) {
+          const g = pts[i].val - pts[i - 1].val;
+          if (g > maxGap) {
+            maxGap = g;
+            splitIdx = i;
+          }
+        }
+        if (maxGap < span * 0.2) return arr;
+
+        const left = pts.slice(0, splitIdx);
+        const right = pts.slice(splitIdx);
+        const major = left.length >= right.length ? left : right;
+
+        const sizes = arr.map(p => Math.max(p.maxX - p.minX, p.maxY - p.minY, 1e-9)).sort((a, b) => a - b);
+        const medSize = sizes[Math.floor(sizes.length / 2)] || 1;
+        const gaps: number[] = [];
+        for (let i = 1; i < major.length; i++) gaps.push(major[i].val - major[i - 1].val);
+        gaps.sort((a, b) => a - b);
+        const medGap = (gaps.length > 0 && gaps[Math.floor(gaps.length / 2)]) || medSize;
+        const thresh = Math.max(medGap * 10, medSize * 20);
+        return maxGap < thresh ? arr : major.map(p => p.box);
+      };
+
+      let prevLen = -1;
+      let iter = 0;
+      while (boxes.length !== prevLen && iter++ < 6) {
+        prevLen = boxes.length;
+        boxes = pruneGap(boxes, 'x');
+        boxes = pruneGap(boxes, 'y');
+      }
+
+      if (boxes.length > 0) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (let i = 0; i < boxes.length; i++) {
+          const b = boxes[i];
+          if (b.minX < minX) minX = b.minX;
+          if (b.minY < minY) minY = b.minY;
+          if (b.maxX > maxX) maxX = b.maxX;
+          if (b.maxY > maxY) maxY = b.maxY;
+        }
+        if (Number.isFinite(minX) && maxX > minX && maxY > minY) {
+          const rawBox = view.getDrawingExtents?.();
+          const box = rawBox && typeof rawBox.clone === 'function' ? rawBox.clone() : { min: { x: minX, y: minY }, max: { x: maxX, y: maxY } };
+          box.min.x = minX;
+          box.min.y = minY;
+          box.max.x = maxX;
+          box.max.y = maxY;
+          if (activeLayout) {
+            activeLayout.cachedSmartExtents = box;
+          }
+          return box;
+        }
+      }
+    }
+  } catch (_) {}
+  return view?.getDrawingExtents?.() ?? null;
+}
+
 function applyReadableMobileBox(view: any, box: any, useOverview: boolean) {
   if (!box || !box.min || !box.max) return false;
   const w = box.max.x - box.min.x;
@@ -316,7 +444,7 @@ function applyReadableMobileBox(view: any, box: any, useOverview: boolean) {
   // tapping "Vừa khung" toggles between Sheet Focus and Full Strip Overview.
   if (!useOverview && w > h * 2.5) {
     const focusW = Math.min(w, Math.max(h * 1.75, w / 3.5));
-    const focusedBox = typeof box.clone === 'function' ? box.clone() : new box.constructor();
+    const focusedBox = typeof box.clone === 'function' ? box.clone() : { min: { x: 0, y: 0 }, max: { x: 0, y: 0 } };
     if (focusedBox && focusedBox.min && focusedBox.max) {
       focusedBox.min.x = box.min.x;
       focusedBox.min.y = box.min.y;
@@ -352,23 +480,9 @@ async function zoomToFit(toggleMode = true): Promise<void> {
       view.onWindowResize?.();
     } catch (_) {}
 
-    // 1. Immediate raw extents framing
-    try {
-      const rawBox = view.getDrawingExtents?.();
-      if (!applyReadableMobileBox(view, rawBox, preferOverviewStrip)) {
-        view.zoomToFitDrawing?.(0);
-      }
-    } catch (_) {}
-
-    // 2. Smart extents framing (waits for entity conversion and filters out (0,0) outliers)
-    if (typeof view.zoomToSmartExtents === 'function') {
-      try {
-        await view.zoomToSmartExtents(0);
-        const smartBox = view._scene?.activeLayout?.cachedSmartExtents ?? (await view.resolveSmartFitBox?.());
-        if (smartBox) {
-          applyReadableMobileBox(view, smartBox, preferOverviewStrip);
-        }
-      } catch (_) {}
+    const smartBox = computeFastSmartExtents(view);
+    if (!applyReadableMobileBox(view, smartBox, preferOverviewStrip)) {
+      view.zoomToFitDrawing?.(0);
     }
   } catch (e) {
     console.warn('[Eurowindow CAD] zoomToFit error:', e);
@@ -451,7 +565,8 @@ function sendDocumentLoaded() {
 // Global stream loader directly callable from Android
 window.loadCurrentDrawing = async function(fileName: string): Promise<boolean> {
   try {
-    showLoadingOverlay(`Đang nạp bản vẽ: ${fileName}...`);
+    currentLoadingFileName = fileName;
+    showLoadingOverlay(`Đang đọc tệp bản vẽ: ${fileName}...`);
     const res = await fetch('https://cad.eurowindow.local/current-drawing-stream');
     if (!res.ok) throw new Error(`HTTP ${res.status} khi tải dữ liệu bản vẽ`);
     const buffer = await res.arrayBuffer();

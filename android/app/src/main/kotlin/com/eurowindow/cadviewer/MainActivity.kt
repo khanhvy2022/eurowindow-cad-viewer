@@ -11,9 +11,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.eurowindow.cadviewer.saf.SafManager
 import com.eurowindow.cadviewer.ui.theme.EurowindowCADViewerTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class IncomingDrawingRequest(
     val uriString: String,
@@ -55,11 +59,15 @@ class MainActivity : ComponentActivity() {
         val targetUri = extractUri(intent) ?: return
 
         SafManager.takePersistablePermission(this, targetUri)
-        val info = SafManager.cacheUriToSandbox(this, targetUri)
-        incomingDrawingFlow.value = IncomingDrawingRequest(
-            uriString = info.uri.toString(),
-            displayName = info.displayName
-        )
+        lifecycleScope.launch {
+            val info = withContext(Dispatchers.IO) {
+                SafManager.cacheUriToSandbox(this@MainActivity, targetUri)
+            }
+            incomingDrawingFlow.value = IncomingDrawingRequest(
+                uriString = info.uri.toString(),
+                displayName = info.displayName
+            )
+        }
     }
 
     private fun extractUri(intent: Intent): Uri? {

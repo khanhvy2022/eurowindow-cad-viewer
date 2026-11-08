@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.eurowindow.cadviewer.data.entity.DrawingMetadata
 import com.eurowindow.cadviewer.saf.SafManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -228,14 +231,19 @@ fun DrawingsScreen(
     onOpenDrawing: (Uri, String) -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val uri = result.data?.data
         if (uri != null) {
             SafManager.takePersistablePermission(context, uri)
-            val info = SafManager.cacheUriToSandbox(context, uri)
-            onOpenDrawing(info.uri, info.displayName)
+            scope.launch {
+                val info = withContext(Dispatchers.IO) {
+                    SafManager.cacheUriToSandbox(context, uri)
+                }
+                onOpenDrawing(info.uri, info.displayName)
+            }
         }
     }
 
@@ -450,7 +458,7 @@ fun SettingsScreen() {
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(text = "Eurowindow CAD Viewer", color = Color.White, fontWeight = FontWeight.Bold)
-                Text(text = "Phiên bản: P0.1.1 (Kiểm thử cục bộ)", color = Color.Gray, fontSize = 13.sp)
+                Text(text = "Phiên bản: v1.0.12 (Tối ưu hóa tốc độ DWG)", color = Color.Gray, fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(10.dp))
                 HorizontalDivider(color = Color(0xFF333333))
                 Spacer(modifier = Modifier.height(10.dp))

@@ -162,12 +162,23 @@ object SafManager {
         val drawingsDir = File(context.filesDir, "drawings").apply { mkdirs() }
         val destFile = File(drawingsDir, safeName)
 
+        // Fast-path: if the sandbox already holds the exact same file size, skip re-copying 68MB+
+        if (destFile.exists() && reportedSize > 0L && destFile.length() == reportedSize) {
+            return SafFileInfo(
+                uri = Uri.fromFile(destFile),
+                displayName = safeName,
+                size = destFile.length(),
+                extension = ext,
+                localFile = destFile
+            )
+        }
+
         // 2. Stream into sandbox file immediately while permission is fresh
         var copySuccess = false
         try {
             context.contentResolver.openInputStream(uri)?.use { input ->
                 FileOutputStream(destFile).use { output ->
-                    input.copyTo(output, bufferSize = 65536)
+                    input.copyTo(output, bufferSize = 262144)
                 }
                 copySuccess = true
             }
@@ -177,7 +188,7 @@ object SafManager {
                 context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
                     FileInputStream(pfd.fileDescriptor).use { input ->
                         FileOutputStream(destFile).use { output ->
-                            input.copyTo(output, bufferSize = 65536)
+                            input.copyTo(output, bufferSize = 262144)
                         }
                     }
                     copySuccess = true

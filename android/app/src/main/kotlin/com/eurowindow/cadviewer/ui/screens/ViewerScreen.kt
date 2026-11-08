@@ -343,25 +343,6 @@ fun ViewerScreen(
                 )
             }
 
-            if (isLoadingDrawing) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0x99000000)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = Color(0xFF90CAF9))
-                        Spacer(modifier = Modifier.height(14.dp))
-                        Text(
-                            text = "Đang nạp và giải mã bản vẽ CAD (DWG / DXF)...",
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-            }
-
             if (errorMessage != null) {
                 AlertDialog(
                     onDismissRequest = {
